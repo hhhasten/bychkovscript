@@ -6,8 +6,8 @@ public record Token(TokenType Type, string Value, int Line, int Column)
     {
         if (string.IsNullOrEmpty(Value))
         {
-            return $"{Type} at {Line}:{Column}";
+            return $"{Type} at {Line}::{Column}";
         }
-        return $"{Type}: '{Value}' at {Line}:{Column}";
+        return $"{Type}: '{Value}' at {Line}::{Column}";
     }
 }

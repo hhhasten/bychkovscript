@@ -32,12 +32,11 @@ public enum TokenType
     GreaterThan,        // >
     LessOrEquals,       // <=
     GreaterOrEquals,    // >=
-    Lambda,             // =>
-    
     
     // Syntax ----------------------------------------------------
     
     Arrow,                      // ->
+    Lambda,             // =>
     Bang,                       // '!'
     OpenParen, CloseParen,      // ( some shit )
     OpenBrace, CloseBrace,      // { some shit }
@@ -49,4 +48,5 @@ public enum TokenType
     
     EndOfFile,      // yk
     BadChar,        // Forbidden chars for exceptions
+    Print,          // Temp token for console out
 }
