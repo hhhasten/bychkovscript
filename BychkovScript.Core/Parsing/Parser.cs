@@ -52,6 +52,13 @@ public class Parser
             
             case TokenType.Print:
                 return ParsePrintStatement();
+            
+            case TokenType.Identifier:
+                Token name = Eat(TokenType.Identifier);
+                Eat(TokenType.Assign);
+                Expression value = ParseExpression();
+                Eat(TokenType.SemiColon);
+                return new AssignmentNode(name, value);
 
             default:
                 throw new Exception($"SyntaxError: Unexpected statement starting with {_current.Type} '{_current.Value}' at {_current.Line}::{_current.Column}");

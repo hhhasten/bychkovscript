@@ -30,3 +30,5 @@ public record PrintStatementNode(
 ) : Statement(Token);
 
 public record VariableNode(Token Token, string Name) : Expression(Token);
+
+public record AssignmentNode(Token Identifier, Expression Value) : Statement(Identifier);

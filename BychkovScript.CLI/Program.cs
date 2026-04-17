@@ -7,7 +7,9 @@ using Environment = BychkovScript.Core.Runtime.Environment;
 const string sourceCode = @"
 let a: float = 10;
 let b: int = 7;
-let result: int = a + b * 2;
+const result: int = a + b * 2;
+
+result = 1;
 
 print!(""The result is:"");
 print!(result);

@@ -21,6 +21,8 @@ public class Interpreter(Environment env)
             VariableDeclarationNode vDecl => EvaluateVariableDeclaration(vDecl),
             PrintStatementNode pStmt => EvaluatePrint(pStmt),
             
+            AssignmentNode a => EvaluateAssignment(a),
+            
             _ => throw new Exception($"RuntimeError: Unknown Node type {node.GetType().Name}")
         };
     }
@@ -41,7 +43,9 @@ public class Interpreter(Environment env)
         
         ValidateType(node.DataType, value);
         
-        env.DeclareVariable(node.Identifier.Value, value!);
+        bool isConst = node.Modifier.Type == TokenType.Const;
+        
+        env.DeclareVariable(node.Identifier.Value, value!, isConst);
         
         return value;
     }
@@ -81,6 +85,15 @@ public class Interpreter(Environment env)
         }
 
         throw new Exception($"RuntimeError: Operation type error {node.Operator.Value}");
+    }
+    
+    object? EvaluateAssignment(AssignmentNode node)
+    {
+        object? value = Evaluate(node.Value);
+        
+        env.AssignVariable(node.Identifier.Value, value!);
+        
+        return value;
     }
     
     void ValidateType(Token typeToken, object? value)
