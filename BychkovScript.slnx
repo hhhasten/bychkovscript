@@ -1,0 +1,4 @@
+<Solution>
+  <Project Path="BychkovScript.CLI/BychkovScript.CLI.csproj" />
+  <Project Path="BychkovScript.Core/BychkovScript.Core.csproj" />
+</Solution>
