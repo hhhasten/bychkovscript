@@ -39,6 +39,8 @@ public class Interpreter(Environment env)
     {
         object? value = Evaluate(node.Value);
         
+        ValidateType(node.DataType, value);
+        
         env.DeclareVariable(node.Identifier.Value, value!);
         
         return value;
@@ -79,5 +81,29 @@ public class Interpreter(Environment env)
         }
 
         throw new Exception($"RuntimeError: Operation type error {node.Operator.Value}");
+    }
+    
+    void ValidateType(Token typeToken, object? value)
+    {
+        switch (typeToken.Type)
+        {
+            case TokenType.TypeString:
+                if (value is not string)
+                    throw new Exception($"TypeError: Змінна таки очікує тип 'string', але дурень-розробник умістив '{value}' у рядку {typeToken.Line}");
+                break;
+
+            case TokenType.TypeInt32:
+                if (value is not double dInt || dInt % 1 != 0)
+                    throw new Exception($"TypeError: Змінна таки очікує тип 'int', але дурень-розробник умістив ({value}) у рядку {typeToken.Line}");
+                break;
+
+            case TokenType.TypeFloat32:
+                if (value is not double)
+                    throw new Exception($"TypeError: Змінна таки очікує тип 'float', але дурень-розробник умістив '{value}' у рядку {typeToken.Line}");
+                break;
+
+            default:
+                throw new Exception($"RuntimeError: Де ти знайшов тип даних {typeToken.Value}?");
+        }
     }
 }
