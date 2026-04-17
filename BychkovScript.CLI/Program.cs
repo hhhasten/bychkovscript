@@ -1,34 +1,40 @@
 ﻿using BychkovScript.Core.Lexing;
+using BychkovScript.Core.Parsing;
+using BychkovScript.Core.Runtime;
+using Environment = BychkovScript.Core.Runtime.Environment;
 
-// LEXER TEST
-const string sourceCode = """
+// Code
+const string sourceCode = @"
+let a: int = 10;
+let b: int = 7;
+let result: int = a + b * 2;
 
-                          # COMMENT
-                          fn calculate_sum(a: int, b: int) -> int {
-                              let result = a + b;
-                              return result;
-                          }
+print!(""The result is:"");
+print!(result);
 
-                          const PI: float = 3.14;
-                          let message: string = "Hello world!";
+const greeting: string = ""Hello from BychkovScript!"";
+print!(greeting);
+";
 
-                          if (PI === 3.14 and TRUE) {
-                              print!(message);
-                          }
-
-                          """;
-
-
-Lexer lexer = new Lexer(sourceCode);
-
-while (true)
+try
 {
-    Token token = lexer.GetNext();
+    Lexer lexer = new Lexer(sourceCode);
     
-    Console.WriteLine(token);
+    Parser parser = new Parser(lexer);
+    var programNode = parser.ParseProgram();
     
-    if (token.Type is TokenType.EndOfFile or TokenType.BadChar)
-    {
-        break;
-    }
+    Environment env = new Environment();
+    Interpreter interpreter = new Interpreter(env);
+    
+    Console.WriteLine("Script start\n");
+    
+    interpreter.Evaluate(programNode);
+    
+    Console.WriteLine("\nScript end");
+}
+catch (Exception ex)
+{
+    Console.ForegroundColor = ConsoleColor.Red;
+    Console.WriteLine(ex.Message);
+    Console.ResetColor();
 }
