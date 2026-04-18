@@ -24,11 +24,6 @@ public record VariableDeclarationNode(
     Expression Value    // value
 ) : Statement(Modifier);
 
-public record PrintStatementNode(
-    Token Token,
-    Expression Value
-) : Statement(Token);
-
 public record VariableNode(Token Token, string Name) : Expression(Token);
 
 public record AssignmentNode(Token Identifier, Expression Value) : Statement(Identifier);
@@ -57,3 +52,19 @@ public record ForNode(
     Expression End,
     BlockNode Body
 ) : Statement(Token);
+
+public record Parameter(Token Name, Token Type);
+
+public record FunctionDeclarationNode(
+    Token Token, 
+    Token Identifier, 
+    List<Parameter> Parameters, 
+    Token? ReturnType, 
+    BlockNode Body
+) : Statement(Token);
+
+public record ReturnNode(Token Token, Expression? Value) : Statement(Token);
+
+public record FunctionCallNode(Token Identifier, List<Expression> Arguments) : Expression(Identifier);
+
+public record ExpressionStatementNode(Expression Expression) : Statement(Expression.Token);

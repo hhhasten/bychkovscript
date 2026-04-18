@@ -1,6 +1,6 @@
 namespace BychkovScript.Core.Runtime;
 
-public class Environment
+public class Environment(Environment? parent = null)
 {
     record Variable(object Value, bool IsConstant);
 
@@ -17,21 +17,34 @@ public class Environment
     }
     
     public object GetVariable(string name)
-        => _variables.TryGetValue(name, out var variable) ? 
-            variable.Value : throw new Exception($"RuntimeError: Опа, а змінна '{name}' ще не визначена!");
+    {
+        if (_variables.TryGetValue(name, out var variable))
+            return variable.Value;
+
+        if (parent != null)
+            return parent.GetVariable(name);
+
+        throw new Exception($"RuntimeError: Опа, а змінна '{name}' ще не визначена!");
+    }
     
     public void AssignVariable(string name, object value)
     {
-        if (!_variables.TryGetValue(name, out var variable))
+        if (_variables.TryGetValue(name, out var variable))
         {
-            throw new Exception($"RuntimeError: Ти намагаєшся присвоїти значення не існуючій змінній '{name}'!");
-        }
-
-        if (variable.IsConstant)
-        {
-            throw new Exception($"RuntimeError: Ти сам оголосив константу '{name}' а тепер намагаєшся змінити їй значення. Браво, тормоз");
+            if (variable.IsConstant)
+            {
+                throw new Exception($"RuntimeError: Ти сам оголосив константу '{name}' а тепер намагаєшся змінити їй значення. Браво, тормоз");
+            }
+            _variables[name] = variable with { Value = value };
+            return;
         }
         
-        _variables[name] = variable with { Value = value };
+        if (parent != null)
+        {
+            parent.AssignVariable(name, value);
+            return;
+        }
+
+        throw new Exception($"RuntimeError: Ти намагаєшся присвоїти значення не існуючій змінній '{name}'!");
     }
 }

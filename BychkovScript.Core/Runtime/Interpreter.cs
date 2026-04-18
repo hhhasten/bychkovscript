@@ -5,6 +5,8 @@ namespace BychkovScript.Core.Runtime;
 
 public class Interpreter(Environment env)
 {
+    public Environment Env { get; private set; } = env;
+    
     public object? Evaluate(Node node)
     {
         return node switch
@@ -14,14 +16,11 @@ public class Interpreter(Environment env)
             NumberNode n => n.Value,
             StringNode s => s.Value,
             
-            VariableNode v => env.GetVariable(v.Name),
+            VariableNode v => Env.GetVariable(v.Name),
             
             BinaryNode b => EvaluateBinary(b),
             
             VariableDeclarationNode vDecl => EvaluateVariableDeclaration(vDecl),
-            PrintStatementNode pStmt => EvaluatePrint(pStmt),
-            
-            AssignmentNode a => EvaluateAssignment(a),
             
             BlockNode b => EvaluateBlock(b),
             IfNode i => EvaluateIf(i),
@@ -29,6 +28,12 @@ public class Interpreter(Environment env)
             
             WhileNode w => EvaluateWhile(w),
             ForNode f => EvaluateFor(f),
+            
+            FunctionDeclarationNode fDecl => EvaluateFunctionDeclaration(fDecl),
+            FunctionCallNode fCall => EvaluateFunctionCall(fCall),
+            ReturnNode ret => EvaluateReturn(ret),
+            
+            ExpressionStatementNode exprStmt => EvaluateExpressionStatement(exprStmt),
             
             _ => throw new Exception($"RuntimeError: Unknown Node type {node.GetType().Name}")
         };
@@ -52,18 +57,9 @@ public class Interpreter(Environment env)
         
         bool isConst = node.Modifier.Type == TokenType.Const;
         
-        env.DeclareVariable(node.Identifier.Value, value!, isConst);
+        Env.DeclareVariable(node.Identifier.Value, value!, isConst);
         
         return value;
-    }
-
-    object? EvaluatePrint(PrintStatementNode node)
-    {
-        object? value = Evaluate(node.Value);
-        
-        Console.WriteLine(value);
-        
-        return null;
     }
     
     object EvaluateBinary(BinaryNode node)
@@ -112,22 +108,13 @@ public class Interpreter(Environment env)
         throw new Exception($"RuntimeError: Operation type error {node.Operator.Value}");
     }
     
-    object? EvaluateAssignment(AssignmentNode node)
-    {
-        object? value = Evaluate(node.Value);
-        
-        env.AssignVariable(node.Identifier.Value, value!);
-        
-        return value;
-    }
-    
     void ValidateType(Token typeToken, object? value)
     {
         switch (typeToken.Type)
         {
             case TokenType.TypeString:
                 if (value is not string)
-                    throw new Exception($"TypeError: Змінна таки очікує тип 'string', але дурень-розробник умістив '{value}' у рядку {typeToken.Line}");
+                    throw new Exception($"TypeError: Змінна таки очікує тип 'str', але дурень-розробник умістив '{value}' у рядку {typeToken.Line}");
                 break;
 
             case TokenType.TypeInt32:
@@ -143,6 +130,11 @@ public class Interpreter(Environment env)
             case TokenType.TypeBoolean:
                 if (value is not bool)
                     throw new Exception($"TypeError: Змінна таки очікує тип 'boolean', але дурень-розробник умістив '{value}' у рядку {typeToken.Line}");
+                break;
+            
+            case TokenType.TypeVoid:
+                if (value is not null)
+                    throw new Exception($"TypeError: Функція з типом 'void' уж ніяк не повинна повертати значення");
                 break;
 
             default:
@@ -209,17 +201,104 @@ public class Interpreter(Environment env)
         string iteratorName = node.Iterator.Value;
         
         try {
-            env.DeclareVariable(iteratorName, (double)start, isConstant: false);
+            Env.DeclareVariable(iteratorName, (double)start, isConstant: false);
         } catch {
-            env.AssignVariable(iteratorName, (double)start);
+            Env.AssignVariable(iteratorName, (double)start);
         }
         
         for (int i = start; i < end; i++)
         {
-            env.AssignVariable(iteratorName, (double)i);
+            Env.AssignVariable(iteratorName, (double)i);
             Evaluate(node.Body);
         }
 
         return null;
     }
+    
+    object? EvaluateFunctionDeclaration(FunctionDeclarationNode node)
+    {
+        var function = new BychkovFunction(node, Env);
+
+        Env.DeclareVariable(node.Identifier.Value, function, isConstant: true);
+        return null;
+    }
+
+    object EvaluateReturn(ReturnNode node)
+    {
+        object? value = node.Value != null ? Evaluate(node.Value) : null;
+        throw new ReturnException(value);
+    }
+
+    object? EvaluateFunctionCall(FunctionCallNode node)
+    {
+        object funcObj = Env.GetVariable(node.Identifier.Value);
+        
+        if (funcObj is NativeFunction native)
+        {
+            if (native.Arity != -1 && node.Arguments.Count != native.Arity)
+                throw new Exception($"RuntimeError: Функція '{node.Identifier.Value}' взагалі то очікує від вас {native.Arity} аргументів.");
+
+            List<object?> nArgs = [];
+            foreach (var arg in node.Arguments) nArgs.Add(Evaluate(arg));
+
+            return native.Function(nArgs);
+        }
+        
+        if (funcObj is not BychkovFunction func)
+            throw new Exception($"TypeError: '{node.Identifier.Value}' не є функцією.");
+        
+        if (node.Arguments.Count != func.Declaration.Parameters.Count)
+            throw new Exception($"RuntimeError: Функція '{node.Identifier.Value}' взагалі то очікує від вас {func.Declaration.Parameters.Count} аргументів.");
+        
+        List<object?> argValues = [];
+        argValues.AddRange(node.Arguments.Select(Evaluate));
+
+        Environment callEnv = new Environment(func.Closure);
+        for (int i = 0; i < argValues.Count; i++)
+        {
+            callEnv.DeclareVariable(func.Declaration.Parameters[i].Name.Value, argValues[i]!, false);
+        }
+        
+        Environment previousEnv = Env;
+        try
+        {
+            Env = callEnv;
+            Evaluate(func.Declaration.Body);
+            
+            if (func.Declaration.ReturnType != null && func.Declaration.ReturnType.Type != TokenType.TypeVoid)
+            {
+                throw new Exception($"RuntimeError: Функция '{node.Identifier.Value}' должна возвращать '{func.Declaration.ReturnType.Value}', но не вернула ничего (отсутствует return)!");
+            }
+            
+            return null;
+        }
+        catch (ReturnException r)
+        {
+            if (func.Declaration.ReturnType != null)
+            {
+                ValidateType(func.Declaration.ReturnType, r.Value);
+            }
+            else if (r.Value != null)
+            {
+                throw new Exception($"TypeError: Функция '{node.Identifier.Value}' не объявляла возвращаемый тип, но попыталась вернуть значение!");
+            }
+            
+            return r.Value; 
+        }
+        finally
+        {
+            Env = previousEnv; 
+        }
+    }
+    
+    object? EvaluateExpressionStatement(ExpressionStatementNode node)
+    {
+        Evaluate(node.Expression); 
+        
+        return null; 
+    }
+
+    record BychkovFunction(FunctionDeclarationNode Declaration, Environment Closure);
+    
+    public record NativeFunction(int Arity, Func<List<object?>, object?> Function);
 }

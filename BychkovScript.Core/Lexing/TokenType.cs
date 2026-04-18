@@ -16,13 +16,15 @@ public enum TokenType
     If, Else, While, For,   // Conditions
     And, Or,                // Logic operators 'and', 'or'
     In, DotDot, Dot,        // in, .., .
+    Return,                 // return
     
     // Value types -----------------------------------------------
     
     TypeInt32,      // int
     TypeFloat32,    // float
     TypeString,     // str
-    TypeBoolean,     // boolean
+    TypeBoolean,    // boolean
+    TypeVoid,       // void
     
     // Operators -------------------------------------------------
     
@@ -50,5 +52,4 @@ public enum TokenType
     
     EndOfFile,      // yk
     BadChar,        // Forbidden chars for exceptions
-    Print,          // Temp token for console out
 }

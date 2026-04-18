@@ -50,16 +50,6 @@ public class Parser
             case TokenType.Const:
                 return ParseVariableDeclaration();
             
-            case TokenType.Print:
-                return ParsePrintStatement();
-            
-            case TokenType.Identifier:
-                Token name = Eat(TokenType.Identifier);
-                Eat(TokenType.Assign);
-                Expression value = ParseExpression();
-                Eat(TokenType.SemiColon);
-                return new AssignmentNode(name, value);
-            
             case TokenType.If: 
                 return ParseIfStatement();
             
@@ -68,9 +58,30 @@ public class Parser
             
             case TokenType.For: 
                 return ParseForStatement();
+            
+            case TokenType.Fn:
+                return ParseFunctionDeclaration();
+            
+            case TokenType.Return:
+                return ParseReturnStatement();
 
             default:
-                throw new Exception($"SyntaxError: Unexpected statement starting with {_current.Type} '{_current.Value}' at {_current.Line}::{_current.Column}");
+                Expression expr = ParseExpression();
+                
+                if (_current.Type == TokenType.Assign)
+                {
+                    if (expr is VariableNode varNode) 
+                    {
+                        Move();
+                        Expression value = ParseExpression();
+                        Eat(TokenType.SemiColon);
+                        return new AssignmentNode(varNode.Token, value);
+                    }
+                    throw new Exception($"SyntaxError: Недопустима ціль для присвоювання у {_current.Line}");
+                }
+
+                Eat(TokenType.SemiColon);
+                return new ExpressionStatementNode(expr);
         }
     }
     
@@ -173,25 +184,8 @@ public class Parser
 
         return new VariableDeclarationNode(modifier, identifier, dataType, value);
     }
-    
-    Statement ParsePrintStatement()
-    {
-        Token printToken = Eat(TokenType.Print);
-        
-        Eat(TokenType.Bang); 
-        
-        Eat(TokenType.OpenParen);
-        
-        Expression value = ParseExpression(); 
-        
-        Eat(TokenType.CloseParen);
-        
-        Eat(TokenType.SemiColon);
 
-        return new PrintStatementNode(printToken, value);
-    }
-
-    public Expression ParseExpression()
+    Expression ParseExpression()
     {
         return ParseLogicalOr();
     }
@@ -286,8 +280,33 @@ public class Parser
         switch (token.Type)
         {
             case TokenType.Identifier:
-                Move();
-                return new VariableNode(token, token.Value);
+                Token id = _current; Move();
+                
+                if (_current.Type == TokenType.Bang)
+                {
+                    id = new Token(TokenType.Identifier, id.Value + "!", id.Line, id.Column);
+                    Move(); // Съедаем '!'
+                }
+                
+                if (_current.Type == TokenType.OpenParen)
+                {
+                    Move(); // Съедаем '('
+                    List<Expression> args = [];
+                    if (_current.Type != TokenType.CloseParen)
+                    {
+                        while (true)
+                        {
+                            args.Add(ParseExpression());
+                            if (_current.Type == TokenType.Comma) Move();
+                            else break;
+                        }
+                    }
+                    Eat(TokenType.CloseParen);
+                    
+                    return new FunctionCallNode(id, args);
+                }
+                
+                return new VariableNode(id, id.Value);
             
             case TokenType.IntLiteral:
             case TokenType.FloatLiteral:
@@ -313,5 +332,54 @@ public class Parser
             default:
                 throw new Exception($"SyntaxError: Unexpected token {_current.Type} at line {_current.Line}. Awaited expression.");
         }
+    }
+    
+    Statement ParseFunctionDeclaration()
+    {
+        Token fnToken = Eat(TokenType.Fn);
+        Token name = Eat(TokenType.Identifier);
+        
+        Eat(TokenType.OpenParen);
+        List<Parameter> parameters = [];
+        
+        if (_current.Type != TokenType.CloseParen)
+        {
+            while (true)
+            {
+                Token paramName = Eat(TokenType.Identifier);
+                Eat(TokenType.Colon);
+                Token paramType = _current; Move();
+                
+                parameters.Add(new Parameter(paramName, paramType));
+                
+                if (_current.Type == TokenType.Comma) Move();
+                else break;
+            }
+        }
+        Eat(TokenType.CloseParen);
+        
+        Token? returnType = null;
+        if (_current.Type == TokenType.Arrow) // ->
+        {
+            Eat(TokenType.Arrow);
+            returnType = _current; Move();
+        }
+
+        BlockNode body = ParseBlock();
+        return new FunctionDeclarationNode(fnToken, name, parameters, returnType, body);
+    }
+
+    Statement ParseReturnStatement()
+    {
+        Token returnToken = Eat(TokenType.Return);
+        Expression? value = null;
+        
+        if (_current.Type != TokenType.SemiColon)
+        {
+            value = ParseExpression();
+        }
+        
+        Eat(TokenType.SemiColon);
+        return new ReturnNode(returnToken, value);
     }
 }

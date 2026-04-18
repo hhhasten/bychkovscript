@@ -26,10 +26,11 @@ public class Lexer(string source)
         { "float", TokenType.TypeFloat32 },
         { "str", TokenType.TypeString },
         { "boolean", TokenType.TypeBoolean},
+        { "void", TokenType.TypeVoid},
         { "TRUE", TokenType.BooleanLiteral },
         { "FALSE", TokenType.BooleanLiteral },
-        { "print", TokenType.Print },
         { "in", TokenType.In },
+        { "return", TokenType.Return },
     };
 
     /// <summary>
