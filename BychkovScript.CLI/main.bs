@@ -1,19 +1,19 @@
 
-let a := 5;
-let b := "some words";
+let a := 5
+let b := "some words"
 
-let c: int;
+let c: int
 
-c = 5;
+c = 5
 
-let arr: trashcan;
+let arr: trashcan
 
-arr = [a, b, c];
+arr = [a, b, c]
 
-let arr2: list|int = [5, 6, 7, 8];
+let arr2: list|int = [5, 6, 7, 8]
 
-let arr3: list|int;
+let arr3: list|int
 
-arr3 = [9, 10, 11, 12];
+arr3 = [9, 10, 11, 12]
 
-let arr4 := [5, 6, 7, 5];
+let arr4 := [5, 6, 7, 5]

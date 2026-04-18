@@ -69,7 +69,10 @@ public class Parser
             case TokenType.Import:
                 Token importToken = Eat(TokenType.Import);
                 Token moduleToken = Eat(TokenType.StringLiteral); 
-                Eat(TokenType.SemiColon);
+                
+                //Eat(TokenType.SemiColon);
+                if (_current.Type == TokenType.SemiColon) Move();
+                
                 return new ImportNode(importToken, moduleToken.Value);
 
             default:
@@ -79,7 +82,9 @@ public class Parser
                 {
                     Move();
                     Expression value = ParseExpression();
-                    Eat(TokenType.SemiColon);
+                    
+                    //Eat(TokenType.SemiColon);
+                    if (_current.Type == TokenType.SemiColon) Move();
                     
                     if (expr is VariableNode varNode)
                     {
@@ -94,7 +99,9 @@ public class Parser
                     throw new Exception($"SyntaxError: Недопустима ціль для присвоєння у {_current.Line}");
                 }
 
-                Eat(TokenType.SemiColon);
+                //Eat(TokenType.SemiColon);
+                if (_current.Type == TokenType.SemiColon) Move();
+                
                 return new ExpressionStatementNode(expr);
         }
     }
@@ -204,7 +211,8 @@ public class Parser
             throw new Exception($"SyntaxError: Константа '{name.Value}' так то має бути ініціалізована одразу.");
         }
         
-        Eat(TokenType.SemiColon);
+        //Eat(TokenType.SemiColon);
+        if (_current.Type == TokenType.SemiColon) Move();
         
         return new VariableDeclarationNode(modifier, name, typeInfo, value);
     }
@@ -421,7 +429,9 @@ public class Parser
             value = ParseExpression();
         }
         
-        Eat(TokenType.SemiColon);
+        //Eat(TokenType.SemiColon);
+        if (_current.Type == TokenType.SemiColon) Move();
+        
         return new ReturnNode(returnToken, value);
     }
     
