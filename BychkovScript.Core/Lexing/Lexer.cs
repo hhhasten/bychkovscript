@@ -27,6 +27,7 @@ public class Lexer(string source)
         { "str", TokenType.TypeString },
         { "boolean", TokenType.TypeBoolean},
         { "void", TokenType.TypeVoid},
+        { "list", TokenType.TypeList},
         { "TRUE", TokenType.BooleanLiteral },
         { "FALSE", TokenType.BooleanLiteral },
         { "in", TokenType.In },
@@ -82,6 +83,10 @@ public class Lexer(string source)
             case ',': Move(); return new Token(TokenType.Comma, ",", startLine, startColumn);
             
             case '!': Move(); return new Token(TokenType.Bang, "!", startLine, startColumn);
+            
+            case '[': Move(); return new Token(TokenType.OpenBracket, "[", startLine, startColumn);
+            case ']': Move(); return new Token(TokenType.CloseBracket, "]", startLine, startColumn);
+            case '|': Move(); return new Token(TokenType.Pipe, "|", startLine, startColumn);
             
             case '-':
                 if (Peek == '>')

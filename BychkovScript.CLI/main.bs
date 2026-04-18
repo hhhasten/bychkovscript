@@ -1,5 +1,3 @@
-import "math";
-
-let direction: str = "нахуй";
-
-println!(PI + "шов " + direction);
+let arr: list|boolean = [TRUE, FALSE, TRUE];
+let first: boolean = arr[0];
+print!(first);

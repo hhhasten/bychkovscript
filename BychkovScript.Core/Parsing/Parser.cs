@@ -168,27 +168,17 @@ public class Parser
     
     Statement ParseVariableDeclaration()
     {
-        Token modifier = _current;
-        Move();
-        
-        Token identifier = Eat(TokenType.Identifier);
-        
+        Token modifier = _current; Move();
+        Token name = Eat(TokenType.Identifier);
         Eat(TokenType.Colon);
         
-        Token dataType = _current;
-        if (dataType.Type is not (TokenType.TypeInt32 or TokenType.TypeFloat32 or TokenType.TypeString or TokenType.TypeBoolean))
-        {
-            throw new Exception($"SyntaxError: Expected type but got {dataType.Type} '{dataType.Value}' {_current.Line}::{_current.Column}");
-        }
-        Move();
-        
-        Eat(TokenType.Assign);
-        
-        Expression value = ParseExpression();
-        
-        Eat(TokenType.SemiColon);
+        TypeInfo typeInfo = ParseType(); 
 
-        return new VariableDeclarationNode(modifier, identifier, dataType, value);
+        Eat(TokenType.Assign);
+        Expression value = ParseExpression();
+        Eat(TokenType.SemiColon);
+        
+        return new VariableDeclarationNode(modifier, name, typeInfo, value);
     }
 
     Expression ParseExpression()
@@ -264,14 +254,14 @@ public class Parser
 
     Expression ParseMultiplicative()
     {
-        Expression left = ParsePrimary();
+        Expression left = ParsePostfix();
         
         while (_current.Type is TokenType.Multiply or TokenType.Divide)
         {
             Token operatorToken = _current;
             Move();
             
-            Expression right = ParsePrimary();
+            Expression right = ParsePostfix();
             
             left = new BinaryNode(left, operatorToken, right);
         }
@@ -334,6 +324,22 @@ public class Parser
                 Move();
                 bool boolValue = token.Value.ToUpper() == "TRUE";
                 return new BooleanNode(token, boolValue);
+            
+            case TokenType.OpenBracket:
+                Token bracketToken = Eat(TokenType.OpenBracket);
+                List<Expression> elements = [];
+                
+                if (_current.Type != TokenType.CloseBracket)
+                {
+                    while (true)
+                    {
+                        elements.Add(ParseExpression());
+                        if (_current.Type == TokenType.Comma) Move();
+                        else break;
+                    }
+                }
+                Eat(TokenType.CloseBracket);
+                return new ListLiteralNode(bracketToken, elements);
 
             default:
                 throw new Exception($"SyntaxError: Unexpected token {_current.Type} at line {_current.Line}. Awaited expression.");
@@ -354,7 +360,8 @@ public class Parser
             {
                 Token paramName = Eat(TokenType.Identifier);
                 Eat(TokenType.Colon);
-                Token paramType = _current; Move();
+                
+                var paramType = ParseType();
                 
                 parameters.Add(new Parameter(paramName, paramType));
                 
@@ -364,15 +371,15 @@ public class Parser
         }
         Eat(TokenType.CloseParen);
         
-        Token? returnType = null;
+        TypeInfo? returnType = null;
         if (_current.Type == TokenType.Arrow) // ->
         {
             Eat(TokenType.Arrow);
-            returnType = _current; Move();
+            returnType = ParseType();
         }
 
         BlockNode body = ParseBlock();
-        return new FunctionDeclarationNode(fnToken, name, parameters, returnType, body);
+        return new FunctionDeclarationNode(fnToken, name, parameters, returnType!, body);
     }
 
     Statement ParseReturnStatement()
@@ -387,5 +394,42 @@ public class Parser
         
         Eat(TokenType.SemiColon);
         return new ReturnNode(returnToken, value);
+    }
+    
+    TypeInfo ParseType()
+    {
+        Token baseType = _current; Move();
+        
+        if (baseType.Type == TokenType.TypeList)
+        {
+            Eat(TokenType.Pipe);
+            Token elementType = _current; Move();
+            return new TypeInfo(baseType, elementType);
+        }
+        
+        return new TypeInfo(baseType);
+    }
+    
+    Expression ParsePostfix()
+    {
+        Expression expr = ParsePrimary();
+        
+        while (true)
+        {
+            if (_current.Type == TokenType.OpenBracket)
+            {
+                Move();
+                Expression index = ParseExpression();
+                Eat(TokenType.CloseBracket);
+                
+                expr = new IndexAccessNode(expr, index);
+            }
+            else
+            {
+                break;
+            }
+        }
+
+        return expr;
     }
 }

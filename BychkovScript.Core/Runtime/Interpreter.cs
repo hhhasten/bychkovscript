@@ -5,9 +5,9 @@ namespace BychkovScript.Core.Runtime;
 
 public class Interpreter(Environment env)
 {
-    public Environment Env { get; private set; } = env;
+    Environment Env { get; set; } = env;
     
-    public Action<string>? OnImport { get; set; }
+    public Action<string>? OnImport { get; init; }
     
     public object? Evaluate(Node node)
     {
@@ -40,6 +40,9 @@ public class Interpreter(Environment env)
             ExpressionStatementNode exprStmt => EvaluateExpressionStatement(exprStmt),
             
             ImportNode imp => EvaluateImport(imp),
+            
+            ListLiteralNode listNode => EvaluateListLiteral(listNode),
+            IndexAccessNode indexNode => EvaluateIndexAccess(indexNode),
             
             _ => throw new Exception($"RuntimeError: Unknown Node type {node.GetType().Name}")
         };
@@ -104,38 +107,54 @@ public class Interpreter(Environment env)
         }
 
         if (left is not string && right is not string)
-            throw new Exception($"RuntimeError: Operation type error {node.Operator.Value}");
+            throw new Exception($"RuntimeError: Оператор не підтримується: {node.Operator.Value}");
 
         if (node.Operator.Type == TokenType.Plus)
         {
             return left!.ToString() + right!;
         }
 
-        throw new Exception($"RuntimeError: Operation type error {node.Operator.Value}");
+        throw new Exception($"RuntimeError: Оператор не підтримується: {node.Operator.Value}");
     }
     
-    void ValidateType(Token typeToken, object? value)
+    void ValidateType(TypeInfo typeInfo, object? value)
     {
-        switch (typeToken.Type)
+        if (typeInfo.BaseType.Type == TokenType.TypeList)
+        {
+            if (value is not List<object?> list)
+                throw new Exception($"TypeError: Очікується тип 'list', але розробник впихнув '{value}'");
+            
+            if (typeInfo.ElementType is not null)
+            {
+                TypeInfo innerType = new TypeInfo(typeInfo.ElementType);
+                foreach (var item in list)
+                {
+                    ValidateType(innerType, item);
+                }
+            }
+            return;
+        }
+        
+        switch (typeInfo.BaseType.Type)
         {
             case TokenType.TypeString:
                 if (value is not string)
-                    throw new Exception($"TypeError: Змінна таки очікує тип 'str', але дурень-розробник умістив '{value}' у рядку {typeToken.Line}");
+                    throw new Exception($"TypeError: Змінна таки очікує тип 'str', але дурень-розробник умістив '{value}' у рядку {typeInfo.BaseType.Line}");
                 break;
 
             case TokenType.TypeInt32:
                 if (value is not double dInt || dInt % 1 != 0)
-                    throw new Exception($"TypeError: Змінна таки очікує тип 'int', але дурень-розробник умістив ({value}) у рядку {typeToken.Line}");
+                    throw new Exception($"TypeError: Змінна таки очікує тип 'int', але дурень-розробник умістив ({value}) у рядку {typeInfo.BaseType.Line}");
                 break;
 
             case TokenType.TypeFloat32:
                 if (value is not double)
-                    throw new Exception($"TypeError: Змінна таки очікує тип 'float', але дурень-розробник умістив '{value}' у рядку {typeToken.Line}");
+                    throw new Exception($"TypeError: Змінна таки очікує тип 'float', але дурень-розробник умістив '{value}' у рядку {typeInfo.BaseType.Line}");
                 break;
             
             case TokenType.TypeBoolean:
                 if (value is not bool)
-                    throw new Exception($"TypeError: Змінна таки очікує тип 'boolean', але дурень-розробник умістив '{value}' у рядку {typeToken.Line}");
+                    throw new Exception($"TypeError: Змінна таки очікує тип 'boolean', але дурень-розробник умістив '{value}' у рядку {typeInfo.BaseType.Line}");
                 break;
             
             case TokenType.TypeVoid:
@@ -144,7 +163,7 @@ public class Interpreter(Environment env)
                 break;
 
             default:
-                throw new Exception($"RuntimeError: Де ти знайшов тип даних {typeToken.Value}?");
+                throw new Exception($"RuntimeError: Де ти знайшов тип даних {typeInfo.BaseType.Value}?");
         }
     }
     
@@ -280,24 +299,17 @@ public class Interpreter(Environment env)
             Env = callEnv;
             Evaluate(func.Declaration.Body);
             
-            if (func.Declaration.ReturnType != null && func.Declaration.ReturnType.Type != TokenType.TypeVoid)
+            if (func.Declaration.ReturnType != null && func.Declaration.ReturnType.BaseType.Type != TokenType.TypeVoid)
             {
-                throw new Exception($"RuntimeError: Функція '{node.Identifier.Value}' взагалі то повинна повертати '{func.Declaration.ReturnType.Value}', але ти скоріше всього не вдуплив і забув return");
+                throw new Exception($"RuntimeError: Функція '{node.Identifier.Value}' взагалі то повинна повертати '{func.Declaration.ReturnType.BaseType.Value}', але ти скоріше всього не вдуплив і забув return");
             }
             
             return null;
         }
         catch (ReturnException r)
         {
-            if (func.Declaration.ReturnType != null)
-            {
-                ValidateType(func.Declaration.ReturnType, r.Value);
-            }
-            else if (r.Value != null)
-            {
-                throw new Exception($"TypeError: Функция '{node.Identifier.Value}' не объявляла возвращаемый тип, но попыталась вернуть значение!");
-            }
-            
+            ValidateType(func.Declaration.ReturnType, r.Value);
+
             return r.Value; 
         }
         finally
@@ -321,6 +333,36 @@ public class Interpreter(Environment env)
         OnImport.Invoke(node.ModuleName); 
         
         return null;
+    }
+    
+    object EvaluateListLiteral(ListLiteralNode node)
+    {
+        List<object?> list = new();
+        foreach (var element in node.Elements)
+        {
+            list.Add(Evaluate(element));
+        }
+        return list;
+    }
+
+    object? EvaluateIndexAccess(IndexAccessNode node)
+    {
+        object? target = Evaluate(node.Target);
+        
+        object? indexObj = Evaluate(node.Index);
+
+        if (target is not List<object?> list)
+            throw new Exception($"TypeError: Ти намагаєшся взяти індекс не зі списку, а чорт знає звідки");
+
+        if (indexObj is not double dIndex || dIndex % 1 != 0)
+            throw new Exception("TypeError: Індекс масиву повинен бути цілим числом, не вигадуй велосипед.");
+
+        int index = (int)dIndex;
+        
+        if (index < 0 || index >= list.Count)
+            throw new Exception($"RuntimeError: Індекс {index} іс аут оф розмів масиву ({list.Count})");
+
+        return list[index];
     }
 
     record BychkovFunction(FunctionDeclarationNode Declaration, Environment Closure);

@@ -20,7 +20,7 @@ public record BinaryNode(Expression Left, Token Operator, Expression Right) : Ex
 public record VariableDeclarationNode(
     Token Modifier,     // let / const
     Token Identifier,   // var name (x)
-    Token DataType,     // type (int, float, string)
+    TypeInfo DataType,     // type (int, float, string)
     Expression Value    // value
 ) : Statement(Modifier);
 
@@ -53,13 +53,13 @@ public record ForNode(
     BlockNode Body
 ) : Statement(Token);
 
-public record Parameter(Token Name, Token Type);
+public record Parameter(Token Name, TypeInfo Type);
 
 public record FunctionDeclarationNode(
     Token Token, 
     Token Identifier, 
     List<Parameter> Parameters, 
-    Token? ReturnType, 
+    TypeInfo ReturnType, 
     BlockNode Body
 ) : Statement(Token);
 
@@ -70,3 +70,9 @@ public record FunctionCallNode(Token Identifier, List<Expression> Arguments) : E
 public record ExpressionStatementNode(Expression Expression) : Statement(Expression.Token);
 
 public record ImportNode(Token Token, string ModuleName) : Statement(Token);
+
+public record TypeInfo(Token BaseType, Token? ElementType = null);
+
+public record ListLiteralNode(Token Token, List<Expression> Elements) : Expression(Token);
+
+public record IndexAccessNode(Expression Target, Expression Index) : Expression(Target.Token);

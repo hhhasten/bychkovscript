@@ -26,6 +26,7 @@ public enum TokenType
     TypeString,     // str
     TypeBoolean,    // boolean
     TypeVoid,       // void
+    TypeList,       // list
     
     // Operators -------------------------------------------------
     
@@ -45,9 +46,11 @@ public enum TokenType
     Bang,                       // '!'
     OpenParen, CloseParen,      // ( some shit )
     OpenBrace, CloseBrace,      // { some shit }
+    OpenBracket, CloseBracket,  // [ some shit ]
     Comma,                      // ,
     Colon,                      // :
     SemiColon,                  // ;
+    Pipe,                       // |
     
     // Special ---------------------------------------------------
     
