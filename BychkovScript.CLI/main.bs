@@ -1,5 +1,18 @@
-mtd love2(a: str, b: str) -> void {
-    print!(a + " loves " + b);
+let myArr: trashcan = [10, 20];
+myArr.push!(30);
+myArr.push!("Random string here");
+
+println!("Length: " + myArr.len!());
+
+for i in 0..myArr.len!() {
+    println!(myArr[i]);
 }
 
-"me".love2("bychkovscript");
+myArr.pop!();
+println!("Length: " + myArr.len!());
+
+println!(randSingle!());
+
+let rand: int = randInt!(5, 1000);
+
+println!(rand);

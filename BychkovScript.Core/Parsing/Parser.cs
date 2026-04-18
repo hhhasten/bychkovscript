@@ -438,6 +438,14 @@ public class Parser
                 Move();
                 
                 Token methodName = Eat(TokenType.Identifier);
+                string methodNameString = methodName.Value;
+                
+                if (_current.Type == TokenType.Bang)
+                {
+                    Move();
+                    methodNameString += "!";
+                }
+                
                 Eat(TokenType.OpenParen);
                 
                 List<Expression> arguments = [];
@@ -452,7 +460,8 @@ public class Parser
                 }
                 Eat(TokenType.CloseParen);
                 
-                expr = new MethodCallNode(expr, methodName, arguments);
+                Token finalNameToken = methodName with { Value = methodNameString };
+                expr = new MethodCallNode(expr, finalNameToken, arguments);
             }
             else
             {
