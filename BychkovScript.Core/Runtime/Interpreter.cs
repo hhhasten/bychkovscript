@@ -35,6 +35,8 @@ public class Interpreter(Environment env)
             FunctionCallNode fCall => EvaluateFunctionCall(fCall),
             ReturnNode ret => EvaluateReturn(ret),
             
+            AssignmentNode a => EvaluateAssignment(a),
+            
             ExpressionStatementNode exprStmt => EvaluateExpressionStatement(exprStmt),
             
             ImportNode imp => EvaluateImport(imp),
@@ -232,6 +234,15 @@ public class Interpreter(Environment env)
         object? value = node.Value != null ? Evaluate(node.Value) : null;
         throw new ReturnException(value);
     }
+    
+    object? EvaluateAssignment(AssignmentNode node)
+    {
+        object? value = Evaluate(node.Value);
+        
+        Env.AssignVariable(node.Identifier.Value, value!);
+    
+        return value;
+    }
 
     object? EvaluateFunctionCall(FunctionCallNode node)
     {
@@ -271,7 +282,7 @@ public class Interpreter(Environment env)
             
             if (func.Declaration.ReturnType != null && func.Declaration.ReturnType.Type != TokenType.TypeVoid)
             {
-                throw new Exception($"RuntimeError: Функция '{node.Identifier.Value}' должна возвращать '{func.Declaration.ReturnType.Value}', но не вернула ничего (отсутствует return)!");
+                throw new Exception($"RuntimeError: Функція '{node.Identifier.Value}' взагалі то повинна повертати '{func.Declaration.ReturnType.Value}', але ти скоріше всього не вдуплив і забув return");
             }
             
             return null;

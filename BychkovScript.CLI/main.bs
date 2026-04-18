@@ -1,5 +1,5 @@
-import "test";
+import "math";
 
-sayHello();
+let direction: str = "нахуй";
 
-print!("hello too");
+println!(PI + "шов " + direction);

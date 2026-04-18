@@ -1,0 +1,48 @@
+### === BETTER INPUT FUNCTIONS === ###
+
+fn readInt(title: str) -> int {
+    print!(title);
+    let userInput: str = input!();
+    
+    return toInt!(userInput);
+}
+
+fn readFloat(title: str) -> float {
+    print!(title);
+    let userInput: str = input!();
+    
+    return toFloat!(userInput);
+}
+
+fn readBoolean(title: str) -> boolean {
+    print!(title);
+    
+    let userInput: str = input!();
+    
+    if (userInput === "true" 
+        or userInput === "True" 
+        or userInput === "TRUE" 
+        or userInput === "T" 
+        or userInput === "t" 
+        or userInput === "yes"
+        or userInput === "Yes"
+        or userInput === "YES"
+        or userInput === "Y"
+        or userInput === "y"
+        or userInput === "1") {
+            return TRUE;
+    }
+    if (userInput === "false" 
+         or userInput === "False" 
+         or userInput === "FALSE" 
+         or userInput === "F" 
+         or userInput === "f" 
+         or userInput === "no"
+         or userInput === "No"
+         or userInput === "NO"
+         or userInput === "N"
+         or userInput === "n"
+         or userInput === "0") {
+            return FALSE;
+    }
+}

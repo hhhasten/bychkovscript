@@ -6,6 +6,12 @@ public static class NativeLibrary
     {
         env.DeclareVariable("print!", new Interpreter.NativeFunction(1, args => 
         {
+            Console.Write(args[0]);
+            return null;
+        }), isConstant: true);
+        
+        env.DeclareVariable("println!", new Interpreter.NativeFunction(1, args => 
+        {
             Console.WriteLine(args[0]);
             return null;
         }), isConstant: true);
@@ -29,11 +35,19 @@ public static class NativeLibrary
         
         env.DeclareVariable("toInt!", new Interpreter.NativeFunction(1, args => 
         {
-            if (args[0] is string strVal && double.TryParse(strVal, out double parsedVal))
+            if (args[0] is string strVal && int.TryParse(strVal, out int parsedVal))
             {
                 return parsedVal;
             }
-            throw new Exception("RuntimeError: Не вдалося конвертувати строку в число.");
+            throw new Exception("RuntimeError: Не вдалося конвертувати str в int.");
+        }), isConstant: true);
+        env.DeclareVariable("toFloat!", new Interpreter.NativeFunction(1, args => 
+        {
+            if (args[0] is string strVal && float.TryParse(strVal, out float parsedVal))
+            {
+                return parsedVal;
+            }
+            throw new Exception("RuntimeError: Не вдалося конвертувати str в float.");
         }), isConstant: true);
     }
 }
