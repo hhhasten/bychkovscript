@@ -11,4 +11,13 @@
       <ProjectReference Include="..\BychkovScript.Core\BychkovScript.Core.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <None Update="main.bs">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+      <None Update="stdlib\test.bs">
+        <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      </None>
+    </ItemGroup>
+
 </Project>
