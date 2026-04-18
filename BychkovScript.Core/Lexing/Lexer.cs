@@ -28,6 +28,7 @@ public class Lexer(string source)
         { "boolean", TokenType.TypeBoolean},
         { "void", TokenType.TypeVoid},
         { "list", TokenType.TypeList},
+        { "trashcan", TokenType.TypeTrashcan},
         { "TRUE", TokenType.BooleanLiteral },
         { "FALSE", TokenType.BooleanLiteral },
         { "in", TokenType.In },

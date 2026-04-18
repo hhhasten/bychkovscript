@@ -76,14 +76,21 @@ public class Parser
                 
                 if (_current.Type == TokenType.Assign)
                 {
-                    if (expr is VariableNode varNode) 
+                    Move();
+                    Expression value = ParseExpression();
+                    Eat(TokenType.SemiColon);
+                    
+                    if (expr is VariableNode varNode)
                     {
-                        Move();
-                        Expression value = ParseExpression();
-                        Eat(TokenType.SemiColon);
                         return new AssignmentNode(varNode.Token, value);
                     }
-                    throw new Exception($"SyntaxError: Недопустима ціль для присвоювання у {_current.Line}");
+                    
+                    if (expr is IndexAccessNode indexAccess)
+                    {
+                        return new IndexAssignmentNode(indexAccess, value);
+                    }
+
+                    throw new Exception($"SyntaxError: Недопустима ціль для присвоєння у {_current.Line}");
                 }
 
                 Eat(TokenType.SemiColon);

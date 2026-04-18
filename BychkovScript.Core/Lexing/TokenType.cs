@@ -27,6 +27,7 @@ public enum TokenType
     TypeBoolean,    // boolean
     TypeVoid,       // void
     TypeList,       // list
+    TypeTrashcan,   // trashcan
     
     // Operators -------------------------------------------------
     

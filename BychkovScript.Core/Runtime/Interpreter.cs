@@ -44,6 +44,8 @@ public class Interpreter(Environment env)
             ListLiteralNode listNode => EvaluateListLiteral(listNode),
             IndexAccessNode indexNode => EvaluateIndexAccess(indexNode),
             
+            IndexAssignmentNode indexAssign => EvaluateIndexAssignment(indexAssign),
+            
             _ => throw new Exception($"RuntimeError: Unknown Node type {node.GetType().Name}")
         };
     }
@@ -155,6 +157,11 @@ public class Interpreter(Environment env)
             case TokenType.TypeBoolean:
                 if (value is not bool)
                     throw new Exception($"TypeError: Змінна таки очікує тип 'boolean', але дурень-розробник умістив '{value}' у рядку {typeInfo.BaseType.Line}");
+                break;
+            
+            case TokenType.TypeTrashcan:
+                if (value is not List<object?>)
+                    throw new Exception($"TypeError: Змінна таки очікує тип 'trashcan', але дурень-розробник умістив '{value}' у рядку {typeInfo.BaseType.Line}");
                 break;
             
             case TokenType.TypeVoid:
@@ -352,7 +359,7 @@ public class Interpreter(Environment env)
         object? indexObj = Evaluate(node.Index);
 
         if (target is not List<object?> list)
-            throw new Exception($"TypeError: Ти намагаєшся взяти індекс не зі списку, а чорт знає звідки");
+            throw new Exception("TypeError: Ти намагаєшся взяти індекс не зі списку, а чорт знає звідки");
 
         if (indexObj is not double dIndex || dIndex % 1 != 0)
             throw new Exception("TypeError: Індекс масиву повинен бути цілим числом, не вигадуй велосипед.");
@@ -363,6 +370,35 @@ public class Interpreter(Environment env)
             throw new Exception($"RuntimeError: Індекс {index} іс аут оф розмів масиву ({list.Count})");
 
         return list[index];
+    }
+    
+    object? EvaluateIndexAssignment(IndexAssignmentNode node)
+    {
+        object? target = Evaluate(node.IndexAccess.Target);
+        
+        object? indexValue = Evaluate(node.IndexAccess.Index);
+        object? newValue = Evaluate(node.Value);
+
+        if (target is not List<object?> list)
+        {
+            throw new Exception("RuntimeError: Ти намагаєшся взяти індекс не зі списку, а чорт знає звідки");
+        }
+
+        if (indexValue is not double dIndex || dIndex % 1 != 0)
+        {
+            throw new Exception("RuntimeError: Індекс масиву повинен бути цілим числом, не вигадуй велосипед.");
+        }
+
+        int index = (int)dIndex;
+
+        if (index < 0 || index >= list.Count)
+        {
+            throw new Exception($"RuntimeError: Індекс {index} іс аут оф розмів масиву ({list.Count})");
+        }
+        
+        list[index] = newValue;
+    
+        return newValue;
     }
 
     record BychkovFunction(FunctionDeclarationNode Declaration, Environment Closure);

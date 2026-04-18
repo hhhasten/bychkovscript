@@ -76,3 +76,6 @@ public record TypeInfo(Token BaseType, Token? ElementType = null);
 public record ListLiteralNode(Token Token, List<Expression> Elements) : Expression(Token);
 
 public record IndexAccessNode(Expression Target, Expression Index) : Expression(Target.Token);
+
+public record IndexAssignmentNode(IndexAccessNode IndexAccess, Expression Value) 
+    : Statement(IndexAccess.Target.Token);
