@@ -59,8 +59,9 @@ public class Parser
             case TokenType.For: 
                 return ParseForStatement();
             
-            case TokenType.Fn:
-                return ParseFunctionDeclaration();
+            case TokenType.Fn or TokenType.Mtd:
+                bool isMethod = _current.Type is TokenType.Mtd;
+                return ParseFunctionDeclaration(isMethod);
             
             case TokenType.Return:
                 return ParseReturnStatement();
@@ -353,9 +354,10 @@ public class Parser
         }
     }
     
-    Statement ParseFunctionDeclaration()
+    Statement ParseFunctionDeclaration(bool isMethod = false)
     {
-        Token fnToken = Eat(TokenType.Fn);
+        Token keywordToken = _current;
+        Move();
         Token name = Eat(TokenType.Identifier);
         
         Eat(TokenType.OpenParen);
@@ -386,7 +388,7 @@ public class Parser
         }
 
         BlockNode body = ParseBlock();
-        return new FunctionDeclarationNode(fnToken, name, parameters, returnType!, body);
+        return new FunctionDeclarationNode(keywordToken, name, parameters, returnType!, body, isMethod);
     }
 
     Statement ParseReturnStatement()
@@ -430,6 +432,27 @@ public class Parser
                 Eat(TokenType.CloseBracket);
                 
                 expr = new IndexAccessNode(expr, index);
+            }
+            else if (_current.Type == TokenType.Dot)
+            {
+                Move();
+                
+                Token methodName = Eat(TokenType.Identifier);
+                Eat(TokenType.OpenParen);
+                
+                List<Expression> arguments = [];
+                if (_current.Type != TokenType.CloseParen)
+                {
+                    while (true)
+                    {
+                        arguments.Add(ParseExpression());
+                        if (_current.Type == TokenType.Comma) Move();
+                        else break;
+                    }
+                }
+                Eat(TokenType.CloseParen);
+                
+                expr = new MethodCallNode(expr, methodName, arguments);
             }
             else
             {

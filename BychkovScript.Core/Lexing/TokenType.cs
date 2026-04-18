@@ -12,7 +12,7 @@ public enum TokenType
     
     // Key Words -------------------------------------------------
     
-    Fn, Let, Const,         // Declarations
+    Fn, Mtd, Let, Const,         // Declarations
     If, Else, While, For,   // Conditions
     And, Or,                // Logic operators 'and', 'or'
     In, DotDot, Dot,        // in, .., .

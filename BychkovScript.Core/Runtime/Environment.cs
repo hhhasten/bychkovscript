@@ -6,7 +6,7 @@ public class Environment(Environment? parent = null)
 
     readonly Dictionary<string, Variable> _variables = new();
 
-    public void DeclareVariable(string name, object value, bool isConstant)
+    public void DeclareVariable(string name, object? value, bool isConstant)
     {
         if (_variables.ContainsKey(name))
         {

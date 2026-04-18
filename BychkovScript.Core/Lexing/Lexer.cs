@@ -14,6 +14,7 @@ public class Lexer(string source)
     readonly Dictionary<string, TokenType> _keywords = new()
     {
         { "fn", TokenType.Fn },
+        { "mtd", TokenType.Mtd },
         { "let", TokenType.Let },
         { "const", TokenType.Const },
         { "if", TokenType.If },

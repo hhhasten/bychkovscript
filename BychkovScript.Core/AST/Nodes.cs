@@ -60,7 +60,8 @@ public record FunctionDeclarationNode(
     Token Identifier, 
     List<Parameter> Parameters, 
     TypeInfo ReturnType, 
-    BlockNode Body
+    BlockNode Body,
+    bool IsMethod = false
 ) : Statement(Token);
 
 public record ReturnNode(Token Token, Expression? Value) : Statement(Token);
@@ -80,3 +81,5 @@ public record IndexAccessNode(Expression Target, Expression Index) : Expression(
 public record IndexAssignmentNode(IndexAccessNode IndexAccess, Expression Value) : Statement(IndexAccess.Target.Token);
 
 public record UnaryOperationNode(Token Operator, Expression Right) : Expression(Operator);
+
+public record MethodCallNode(Expression Target, Token Identifier, List<Expression> Arguments) : Expression(Target.Token);

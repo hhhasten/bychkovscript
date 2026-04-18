@@ -1,6 +1,5 @@
-let isCool: boolean = TRUE;
-let isBoring: boolean = ~isCool;
-
-if ((1 !== 2)) {
-    print!("Inversion works: " + isBoring);
+mtd love2(a: str, b: str) -> void {
+    print!(a + " loves " + b);
 }
+
+"me".love2("bychkovscript");

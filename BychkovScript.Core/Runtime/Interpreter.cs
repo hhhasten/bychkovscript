@@ -33,6 +33,7 @@ public class Interpreter(Environment env)
             
             FunctionDeclarationNode fDecl => EvaluateFunctionDeclaration(fDecl),
             FunctionCallNode fCall => EvaluateFunctionCall(fCall),
+            MethodCallNode methodCall => EvaluateMethodCall(methodCall),
             ReturnNode ret => EvaluateReturn(ret),
             
             AssignmentNode a => EvaluateAssignment(a),
@@ -333,6 +334,62 @@ public class Interpreter(Environment env)
             Env = previousEnv; 
         }
     }
+    
+    object? EvaluateMethodCall(MethodCallNode node)
+{
+    object? target = Evaluate(node.Target);
+    
+    object funcObj = Env.GetVariable(node.Identifier.Value);
+    
+    List<object?> argValues = [target];
+    argValues.AddRange(node.Arguments.Select(Evaluate));
+    
+    if (funcObj is NativeFunction native)
+    {
+        if (native.Arity != -1 && argValues.Count != native.Arity)
+            throw new Exception($"RuntimeError: Метод '{node.Identifier.Value}' очікує {native.Arity} аргументів.");
+
+        return native.Function(argValues);
+    }
+    
+    if (funcObj is not BychkovFunction func)
+        throw new Exception($"TypeError: '{node.Identifier.Value}' не є методом.");
+    
+    if (!func.Declaration.IsMethod)
+        throw new Exception($"TypeError: '{node.Identifier.Value}' - це звичайна функція fn. Використовуй її як звичайний виклик, а не через крапку.");
+
+    if (argValues.Count != func.Declaration.Parameters.Count)
+        throw new Exception($"RuntimeError: Метод '{node.Identifier.Value}' очікує {func.Declaration.Parameters.Count} аргументів (разом з об'єктом), але отримав {argValues.Count}.");
+    
+    Environment callEnv = new Environment(func.Closure);
+    for (int i = 0; i < argValues.Count; i++)
+    {
+        callEnv.DeclareVariable(func.Declaration.Parameters[i].Name.Value, argValues[i]!, false);
+    }
+    
+    Environment previousEnv = Env;
+    try
+    {
+        Env = callEnv;
+        Evaluate(func.Declaration.Body);
+        
+        if (func.Declaration.ReturnType != null && func.Declaration.ReturnType.BaseType.Type != TokenType.TypeVoid)
+        {
+            throw new Exception($"RuntimeError: Метод '{node.Identifier.Value}' повинен повертати '{func.Declaration.ReturnType.BaseType.Value}', але ти скоріше всього не вдуплив і забув return");
+        }
+        
+        return null;
+    }
+    catch (ReturnException r)
+    {
+        ValidateType(func.Declaration.ReturnType, r.Value);
+        return r.Value;
+    }
+    finally 
+    { 
+        Env = previousEnv; 
+    }
+}
     
     object? EvaluateExpressionStatement(ExpressionStatementNode node)
     {
