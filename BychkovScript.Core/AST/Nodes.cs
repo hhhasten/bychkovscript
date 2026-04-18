@@ -21,7 +21,7 @@ public record VariableDeclarationNode(
     Token Modifier,     // let / const
     Token Identifier,   // var name (x)
     TypeInfo? DataType,     // type (int, float, string)
-    Expression Value    // value
+    Expression? Value    // value
 ) : Statement(Modifier);
 
 public record VariableNode(Token Token, string Name) : Expression(Token);

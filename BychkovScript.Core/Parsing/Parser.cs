@@ -178,20 +178,32 @@ public class Parser
     {
         Token modifier = _current; Move();
         Token name = Eat(TokenType.Identifier);
-        TypeInfo? typeInfo = null; 
         
-        if (_current.Type == TokenType.ColonAssign)
+        TypeInfo? typeInfo = null; 
+        Expression? value = null;
+        
+        if (_current.Type == TokenType.ColonAssign) 
         {
             Move();
+            value = ParseExpression();
         }
         else
         {
             Eat(TokenType.Colon);
             typeInfo = ParseType(); 
-            Eat(TokenType.Assign); 
+
+            if (_current.Type == TokenType.Assign) 
+            {
+                Move();
+                value = ParseExpression();
+            }
         }
         
-        Expression value = ParseExpression();
+        if (modifier.Type == TokenType.Const)
+        {
+            throw new Exception($"SyntaxError: Константа '{name.Value}' так то має бути ініціалізована одразу.");
+        }
+        
         Eat(TokenType.SemiColon);
         
         return new VariableDeclarationNode(modifier, name, typeInfo, value);

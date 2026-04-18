@@ -65,18 +65,23 @@ public class Interpreter(Environment env)
     
     object? EvaluateVariableDeclaration(VariableDeclarationNode node)
     {
-        object? value = Evaluate(node.Value);
+        object? evalValue = null;
         
-        if (node.DataType != null) 
+        if (node.Value != null)
         {
-            ValidateType(node.DataType, value);
+            evalValue = Evaluate(node.Value);
+            
+            if (node.DataType != null) 
+            {
+                ValidateType(node.DataType, evalValue);
+            }
         }
         
         bool isConst = node.Modifier.Type == TokenType.Const;
         
-        Env.DeclareVariable(node.Identifier.Value, value, isConst);
+        Env.DeclareVariable(node.Identifier.Value, evalValue, isConst);
         
-        return value;
+        return null;
     }
     
     object EvaluateBinary(BinaryNode node)

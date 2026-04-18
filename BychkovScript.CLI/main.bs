@@ -1,8 +1,19 @@
-let message := "Привіт, BychkovScript!";
-let target := 42;
-const pi := 3.14159;
-let items := [1, 2, 3];
 
-println!(message);
-println!(target);
-println!(items.len!());
+let a := 5;
+let b := "some words";
+
+let c: int;
+
+c = 5;
+
+let arr: trashcan;
+
+arr = [a, b, c];
+
+let arr2: list|int = [5, 6, 7, 8];
+
+let arr3: list|int;
+
+arr3 = [9, 10, 11, 12];
+
+let arr4 := [5, 6, 7, 5];
