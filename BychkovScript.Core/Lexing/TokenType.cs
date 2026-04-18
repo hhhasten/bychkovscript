@@ -20,7 +20,8 @@ public enum TokenType
     
     TypeInt32,      // int
     TypeFloat32,    // float
-    TypeString,     // string
+    TypeString,     // str
+    TypeBoolean,     // boolean
     
     // Operators -------------------------------------------------
     

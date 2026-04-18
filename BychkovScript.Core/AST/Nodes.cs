@@ -32,3 +32,14 @@ public record PrintStatementNode(
 public record VariableNode(Token Token, string Name) : Expression(Token);
 
 public record AssignmentNode(Token Identifier, Expression Value) : Statement(Identifier);
+
+public record BlockNode(List<Statement> Statements) : Statement(new Token(TokenType.OpenBrace, "{", 0, 0));
+
+public record IfNode(
+    Token Token, 
+    Expression Condition, 
+    BlockNode TrueBlock, 
+    Statement? ElseBranch
+) : Statement(Token);
+
+public record BooleanNode(Token Token, bool Value) : Expression(Token);

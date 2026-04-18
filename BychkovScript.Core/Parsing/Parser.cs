@@ -59,10 +59,55 @@ public class Parser
                 Expression value = ParseExpression();
                 Eat(TokenType.SemiColon);
                 return new AssignmentNode(name, value);
+            
+            case TokenType.If: 
+                return ParseIfStatement();
 
             default:
                 throw new Exception($"SyntaxError: Unexpected statement starting with {_current.Type} '{_current.Value}' at {_current.Line}::{_current.Column}");
         }
+    }
+    
+    BlockNode ParseBlock()
+    {
+        Eat(TokenType.OpenBrace);
+        List<Statement> statements = [];
+        
+        while (_current.Type != TokenType.CloseBrace && _current.Type != TokenType.EndOfFile)
+        {
+            statements.Add(ParseStatement());
+        }
+
+        Eat(TokenType.CloseBrace);
+        return new BlockNode(statements);
+    }
+    
+    Statement ParseIfStatement()
+    {
+        Token ifToken = Eat(TokenType.If);
+        
+        Eat(TokenType.OpenParen);
+        Expression condition = ParseExpression();
+        Eat(TokenType.CloseParen);
+
+        BlockNode trueBlock = ParseBlock();
+        Statement? elseBranch = null;
+        
+        if (_current.Type == TokenType.Else)
+        {
+            Eat(TokenType.Else);
+            
+            if (_current.Type == TokenType.If)
+            {
+                elseBranch = ParseIfStatement(); 
+            }
+            else
+            {
+                elseBranch = ParseBlock();
+            }
+        }
+
+        return new IfNode(ifToken, condition, trueBlock, elseBranch);
     }
     
     Statement ParseVariableDeclaration()
@@ -75,7 +120,7 @@ public class Parser
         Eat(TokenType.Colon);
         
         Token dataType = _current;
-        if (dataType.Type is not (TokenType.TypeInt32 or TokenType.TypeFloat32 or TokenType.TypeString))
+        if (dataType.Type is not (TokenType.TypeInt32 or TokenType.TypeFloat32 or TokenType.TypeString or TokenType.TypeBoolean))
         {
             throw new Exception($"SyntaxError: Expected type but got {dataType.Type} '{dataType.Value}' {_current.Line}::{_current.Column}");
         }
@@ -107,9 +152,59 @@ public class Parser
         return new PrintStatementNode(printToken, value);
     }
 
-    Expression ParseExpression()
+    public Expression ParseExpression()
     {
-        return ParseAddictive();
+        return ParseLogicalOr();
+    }
+    
+    Expression ParseLogicalOr()
+    {
+        Expression left = ParseLogicalAnd();
+        while (_current.Type == TokenType.Or)
+        {
+            Token op = _current; Move();
+            Expression right = ParseLogicalAnd();
+            left = new BinaryNode(left, op, right);
+        }
+        return left;
+    }
+
+    Expression ParseLogicalAnd()
+    {
+        Expression left = ParseEquality();
+        while (_current.Type == TokenType.And)
+        {
+            Token op = _current; Move();
+            Expression right = ParseEquality();
+            left = new BinaryNode(left, op, right);
+        }
+        return left;
+    }
+
+    Expression ParseEquality()
+    {
+        Expression left = ParseRelational();
+        while (_current.Type == TokenType.Equals) 
+        {
+            Token op = _current; Move();
+            Expression right = ParseRelational();
+            left = new BinaryNode(left, op, right);
+        }
+        return left;
+    }
+    
+    Expression ParseRelational()
+    {
+        Expression left = ParseAddictive(); 
+        
+        while (_current.Type is TokenType.LessThan or TokenType.GreaterThan or 
+               TokenType.LessOrEquals or TokenType.GreaterOrEquals)
+        {
+            Token op = _current; Move();
+            Expression right = ParseAddictive();
+            left = new BinaryNode(left, op, right);
+        }
+        return left;
     }
 
     Expression ParseAddictive()
@@ -170,6 +265,11 @@ public class Parser
                 Expression expression = ParseExpression();
                 Eat(TokenType.CloseParen);
                 return expression;
+            
+            case TokenType.BooleanLiteral:
+                Move();
+                bool boolValue = token.Value.ToUpper() == "TRUE";
+                return new BooleanNode(token, boolValue);
 
             default:
                 throw new Exception($"SyntaxError: Unexpected token {_current.Type} at line {_current.Line}. Awaited expression.");

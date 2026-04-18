@@ -5,17 +5,16 @@ using Environment = BychkovScript.Core.Runtime.Environment;
 
 // Code
 const string sourceCode = @"
-let a: float = 10;
-let b: int = 7;
-const result: int = a + b * 2;
 
-result = 1;
+let count: int = 0;
 
-print!(""The result is:"");
-print!(result);
-
-const greeting: string = ""Hello from BychkovScript!"";
-print!(greeting);
+if (count < 10) {
+    print!(""bad"");
+} else if (count >= 10 and count < 20) {
+    print!(""ok"");
+} else {
+    print!(""excellent!"");
+}
 ";
 
 try

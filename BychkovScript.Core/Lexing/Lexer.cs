@@ -24,7 +24,8 @@ public class Lexer(string source)
         { "or", TokenType.Or },
         { "int", TokenType.TypeInt32 },
         { "float", TokenType.TypeFloat32 },
-        { "string", TokenType.TypeString },
+        { "str", TokenType.TypeString },
+        { "boolean", TokenType.TypeBoolean},
         { "TRUE", TokenType.BooleanLiteral },
         { "FALSE", TokenType.BooleanLiteral },
         { "print", TokenType.Print }

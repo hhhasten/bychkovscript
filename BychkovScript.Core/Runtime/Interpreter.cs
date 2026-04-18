@@ -23,6 +23,10 @@ public class Interpreter(Environment env)
             
             AssignmentNode a => EvaluateAssignment(a),
             
+            BlockNode b => EvaluateBlock(b),
+            IfNode i => EvaluateIf(i),
+            BooleanNode boolNode => boolNode.Value,
+            
             _ => throw new Exception($"RuntimeError: Unknown Node type {node.GetType().Name}")
         };
     }
@@ -64,6 +68,20 @@ public class Interpreter(Environment env)
         object? left = Evaluate(node.Left);
         object? right = Evaluate(node.Right);
         
+        if (node.Operator.Type == TokenType.Equals)
+        {
+            return left!.Equals(right);
+        }
+        
+        if (node.Operator.Type is TokenType.And or TokenType.Or)
+        {
+            if (left is bool lBool && right is bool rBool)
+            {
+                return node.Operator.Type == TokenType.And ? lBool && rBool : lBool || rBool;
+            }
+            throw new Exception($"TypeError: Логічні оператори потребують булевий тип");
+        }
+        
         if (left is double l && right is double r)
         {
             return node.Operator.Type switch
@@ -72,7 +90,11 @@ public class Interpreter(Environment env)
                 TokenType.Minus => l - r,
                 TokenType.Multiply => l * r,
                 TokenType.Divide => l / r,
-                _ => throw new Exception($"RuntimeError: Unsupported operator {node.Operator.Value}")
+                TokenType.LessThan => l < r,
+                TokenType.GreaterThan => l > r,
+                TokenType.LessOrEquals => l <= r,
+                TokenType.GreaterOrEquals => l >= r,
+                _ => throw new Exception($"RuntimeError: Оператор не підтримується: {node.Operator.Value}")
             };
         }
 
@@ -114,9 +136,44 @@ public class Interpreter(Environment env)
                 if (value is not double)
                     throw new Exception($"TypeError: Змінна таки очікує тип 'float', але дурень-розробник умістив '{value}' у рядку {typeToken.Line}");
                 break;
+            
+            case TokenType.TypeBoolean:
+                if (value is not bool)
+                    throw new Exception($"TypeError: Змінна таки очікує тип 'boolean', але дурень-розробник умістив '{value}' у рядку {typeToken.Line}");
+                break;
 
             default:
                 throw new Exception($"RuntimeError: Де ти знайшов тип даних {typeToken.Value}?");
         }
+    }
+    
+    object? EvaluateBlock(BlockNode node)
+    {
+        foreach (var stmt in node.Statements)
+        {
+            Evaluate(stmt);
+        }
+        return null;
+    }
+
+    object? EvaluateIf(IfNode node)
+    {
+        object? condition = Evaluate(node.Condition);
+        
+        if (condition is not bool b)
+        {
+            throw new Exception($"TypeError: Очікується булеве значення а тут {condition?.GetType().Name}");
+        }
+        
+        if (b)
+        {
+            Evaluate(node.TrueBlock);
+        }
+        else if (node.ElseBranch != null) 
+        {
+            Evaluate(node.ElseBranch);
+        }
+
+        return null;
     }
 }
