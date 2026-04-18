@@ -62,6 +62,12 @@ public class Parser
             
             case TokenType.If: 
                 return ParseIfStatement();
+            
+            case TokenType.While: 
+                return ParseWhileStatement();
+            
+            case TokenType.For: 
+                return ParseForStatement();
 
             default:
                 throw new Exception($"SyntaxError: Unexpected statement starting with {_current.Type} '{_current.Value}' at {_current.Line}::{_current.Column}");
@@ -80,6 +86,39 @@ public class Parser
 
         Eat(TokenType.CloseBrace);
         return new BlockNode(statements);
+    }
+    
+    Statement ParseWhileStatement()
+    {
+        Token whileToken = Eat(TokenType.While);
+        
+        Eat(TokenType.OpenParen);
+        Expression condition = ParseExpression();
+        Eat(TokenType.CloseParen);
+        
+        BlockNode body = ParseBlock();
+        
+        return new WhileNode(whileToken, condition, body);
+    }
+
+    // for i in 0..10 { ... }
+    Statement ParseForStatement()
+    {
+        Token forToken = Eat(TokenType.For);
+        
+        Token iterator = Eat(TokenType.Identifier);
+        
+        Eat(TokenType.In);
+        
+        Expression start = ParseExpression();
+        
+        Eat(TokenType.DotDot);
+        
+        Expression end = ParseExpression();
+        
+        BlockNode body = ParseBlock();
+        
+        return new ForNode(forToken, iterator, start, end, body);
     }
     
     Statement ParseIfStatement()

@@ -43,3 +43,17 @@ public record IfNode(
 ) : Statement(Token);
 
 public record BooleanNode(Token Token, bool Value) : Expression(Token);
+
+public record WhileNode(
+    Token Token, 
+    Expression Condition, 
+    BlockNode Body
+) : Statement(Token);
+
+public record ForNode(
+    Token Token, 
+    Token Iterator,
+    Expression Start,
+    Expression End,
+    BlockNode Body
+) : Statement(Token);

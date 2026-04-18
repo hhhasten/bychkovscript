@@ -15,6 +15,7 @@ public enum TokenType
     Fn, Let, Const,         // Declarations
     If, Else, While, For,   // Conditions
     And, Or,                // Logic operators 'and', 'or'
+    In, DotDot, Dot,        // in, .., .
     
     // Value types -----------------------------------------------
     
@@ -37,7 +38,7 @@ public enum TokenType
     // Syntax ----------------------------------------------------
     
     Arrow,                      // ->
-    Lambda,             // =>
+    Lambda,                     // =>
     Bang,                       // '!'
     OpenParen, CloseParen,      // ( some shit )
     OpenBrace, CloseBrace,      // { some shit }

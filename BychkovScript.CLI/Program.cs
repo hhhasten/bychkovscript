@@ -6,15 +6,16 @@ using Environment = BychkovScript.Core.Runtime.Environment;
 // Code
 const string sourceCode = @"
 
-let count: int = 0;
+let count: int = 10;
 
-if (count < 10) {
-    print!(""bad"");
-} else if (count >= 10 and count < 20) {
-    print!(""ok"");
-} else {
-    print!(""excellent!"");
+for i in 0..count {
+    print!(""hello"");
 }
+
+while (TRUE) {
+    print!(""world!"");
+}
+
 ";
 
 try

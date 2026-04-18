@@ -27,6 +27,9 @@ public class Interpreter(Environment env)
             IfNode i => EvaluateIf(i),
             BooleanNode boolNode => boolNode.Value,
             
+            WhileNode w => EvaluateWhile(w),
+            ForNode f => EvaluateFor(f),
+            
             _ => throw new Exception($"RuntimeError: Unknown Node type {node.GetType().Name}")
         };
     }
@@ -172,6 +175,49 @@ public class Interpreter(Environment env)
         else if (node.ElseBranch != null) 
         {
             Evaluate(node.ElseBranch);
+        }
+
+        return null;
+    }
+    
+    object? EvaluateWhile(WhileNode node)
+    {
+        while (true)
+        {
+            object? condition = Evaluate(node.Condition);
+            
+            if (condition is not bool b)
+                throw new Exception($"TypeError: Умова циклу while повинна бути логічною, а не оця срань {condition?.GetType().Name}");
+                
+            if (!b) break;
+            
+            Evaluate(node.Body);
+        }
+        return null;
+    }
+
+    object? EvaluateFor(ForNode node)
+    {
+        object? startObj = Evaluate(node.Start);
+        object? endObj = Evaluate(node.End);
+
+        if (startObj is not double startVal || endObj is not double endVal)
+            throw new Exception("TypeError: Діапазон циклу for повинний бути цілочисельним (int).");
+        
+        int start = (int)startVal;
+        int end = (int)endVal;
+        string iteratorName = node.Iterator.Value;
+        
+        try {
+            env.DeclareVariable(iteratorName, (double)start, isConstant: false);
+        } catch {
+            env.AssignVariable(iteratorName, (double)start);
+        }
+        
+        for (int i = start; i < end; i++)
+        {
+            env.AssignVariable(iteratorName, (double)i);
+            Evaluate(node.Body);
         }
 
         return null;

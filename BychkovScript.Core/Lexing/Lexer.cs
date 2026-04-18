@@ -28,7 +28,8 @@ public class Lexer(string source)
         { "boolean", TokenType.TypeBoolean},
         { "TRUE", TokenType.BooleanLiteral },
         { "FALSE", TokenType.BooleanLiteral },
-        { "print", TokenType.Print }
+        { "print", TokenType.Print },
+        { "in", TokenType.In },
     };
 
     /// <summary>
@@ -120,6 +121,15 @@ public class Lexer(string source)
                 }
                 Move();
                 return new Token(TokenType.GreaterThan, ">", startLine, startColumn);
+            
+            case '.':
+                if (Peek == '.')
+                {
+                    Move(); Move();
+                    return new Token(TokenType.DotDot, "..", startLine, startColumn);
+                }
+                Move();
+                return new Token(TokenType.Dot, ".", startLine, startColumn);
         }
         
         Move();
@@ -199,16 +209,22 @@ public class Lexer(string source)
     Token ReadNumber(char c, int startLine, int startColumn)
     {
         string numStr = "";
-        bool isFloat = false; // detects point
+        bool isFloat = false;
 
         while (char.IsDigit(Current) || Current == '.')
         {
             if (Current == '.')
             {
+                if (!char.IsDigit(Peek))
+                {
+                    break;
+                }
+
                 if (isFloat)
                 {
-                    break; // prevent bad float values like 20.20.20
+                    break;
                 }
+                
                 isFloat = true;
             }
             numStr += Current;
