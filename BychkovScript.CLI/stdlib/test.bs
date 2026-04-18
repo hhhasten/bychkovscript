@@ -1,3 +1,3 @@
 fn sayHello() -> void {
-    print!("hello world!");
+    print!("hello world! world!");
 }

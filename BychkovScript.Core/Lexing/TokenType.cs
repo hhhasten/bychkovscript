@@ -17,6 +17,7 @@ public enum TokenType
     And, Or,                // Logic operators 'and', 'or'
     In, DotDot, Dot,        // in, .., .
     Return,                 // return
+    Import,                 // import
     
     // Value types -----------------------------------------------
     

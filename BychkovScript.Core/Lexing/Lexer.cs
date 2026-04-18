@@ -31,6 +31,7 @@ public class Lexer(string source)
         { "FALSE", TokenType.BooleanLiteral },
         { "in", TokenType.In },
         { "return", TokenType.Return },
+        { "import", TokenType.Import },
     };
 
     /// <summary>

@@ -7,6 +7,8 @@ public class Interpreter(Environment env)
 {
     public Environment Env { get; private set; } = env;
     
+    public Action<string>? OnImport { get; set; }
+    
     public object? Evaluate(Node node)
     {
         return node switch
@@ -34,6 +36,8 @@ public class Interpreter(Environment env)
             ReturnNode ret => EvaluateReturn(ret),
             
             ExpressionStatementNode exprStmt => EvaluateExpressionStatement(exprStmt),
+            
+            ImportNode imp => EvaluateImport(imp),
             
             _ => throw new Exception($"RuntimeError: Unknown Node type {node.GetType().Name}")
         };
@@ -296,6 +300,16 @@ public class Interpreter(Environment env)
         Evaluate(node.Expression); 
         
         return null; 
+    }
+    
+    object? EvaluateImport(ImportNode node)
+    {
+        if (OnImport == null)
+            throw new Exception("RuntimeError: Срєда виполнєнія не підтримує імпорт файлів");
+        
+        OnImport.Invoke(node.ModuleName); 
+        
+        return null;
     }
 
     record BychkovFunction(FunctionDeclarationNode Declaration, Environment Closure);

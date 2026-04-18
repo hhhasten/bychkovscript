@@ -64,6 +64,12 @@ public class Parser
             
             case TokenType.Return:
                 return ParseReturnStatement();
+            
+            case TokenType.Import:
+                Token importToken = Eat(TokenType.Import);
+                Token moduleToken = Eat(TokenType.StringLiteral); 
+                Eat(TokenType.SemiColon);
+                return new ImportNode(importToken, moduleToken.Value);
 
             default:
                 Expression expr = ParseExpression();

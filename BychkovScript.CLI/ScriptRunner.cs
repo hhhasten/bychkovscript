@@ -9,31 +9,30 @@ public class ScriptRunner
 {
     readonly Interpreter _interpreter;
     readonly Environment _globalEnv;
+    readonly string _baseDirectory;
 
     public ScriptRunner()
     {
+        _baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
         _globalEnv = new Environment();
         NativeLibrary.Register(_globalEnv);
-        _interpreter = new Interpreter(_globalEnv);
+        
+        _interpreter = new Interpreter(_globalEnv) 
+        {
+            OnImport = ResolveAndExecuteImport
+        };
+
     }
 
-    public void RunFromFiles(string mainScriptPath, string stdLibDirectory)
+    public void RunMain(string mainScriptPath)
     {
         try
         {
-            if (Directory.Exists(stdLibDirectory))
-            {
-                var stdFiles = Directory.GetFiles(stdLibDirectory, "*.bs");
-                foreach (var file in stdFiles)
-                {
-                    ExecuteFile(file);
-                }
-            }
-            
             if (File.Exists(mainScriptPath))
             {
                 ExecuteFile(mainScriptPath);
             }
+            
             else
             {
                 Console.WriteLine($"Error: Файл {mainScriptPath} не знайдено.");
@@ -55,5 +54,24 @@ public class ScriptRunner
         var program = parser.ParseProgram();
         
         _interpreter.Evaluate(program);
+    }
+    
+    void ResolveAndExecuteImport(string moduleName)
+    {
+        string localPath = Path.Combine(_baseDirectory, moduleName);
+        if (File.Exists(localPath))
+        {
+            ExecuteFile(localPath);
+            return;
+        }
+        
+        string stdLibPath = Path.Combine(_baseDirectory, "stdlib", moduleName + ".bs");
+        if (File.Exists(stdLibPath))
+        {
+            ExecuteFile(stdLibPath);
+            return;
+        }
+
+        throw new Exception($"ImportError: Не вдалося знайти ніякого '{moduleName}'.");
     }
 }

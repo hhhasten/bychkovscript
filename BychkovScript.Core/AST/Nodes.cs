@@ -68,3 +68,5 @@ public record ReturnNode(Token Token, Expression? Value) : Statement(Token);
 public record FunctionCallNode(Token Identifier, List<Expression> Arguments) : Expression(Identifier);
 
 public record ExpressionStatementNode(Expression Expression) : Statement(Expression.Token);
+
+public record ImportNode(Token Token, string ModuleName) : Statement(Token);
