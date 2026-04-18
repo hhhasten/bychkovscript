@@ -10,7 +10,9 @@ public class Environment(Environment? parent = null)
     {
         if (_variables.ContainsKey(name))
         {
-            throw new Exception($"RuntimeError: Змінна '{name}' вже існує бляха! Вже не можна!");
+            throw new Exception($"RuntimeError: Змінна '{name}' вже існує в цьому скоупі! " +
+                                $"Тобі написав код діпсік, чи ти звик до var у JavaScript, де можна смітити в пам'яті і переоголошувати все підряд? " +
+                                $"Май повагу до пам'яті, вона зараз дорога");
         }
 
         _variables[name] = new Variable(value, isConstant);
@@ -24,7 +26,8 @@ public class Environment(Environment? parent = null)
         if (parent != null)
             return parent.GetVariable(name);
 
-        throw new Exception($"RuntimeError: Опа, а змінна '{name}' ще не визначена!");
+        throw new Exception($"RuntimeError: Змінну '{name}' не знайдено! Чекав 'undefined', як у своєму улюбленому джаваскріпті? " +
+                            $"У нас тут строгий лексичний скоуп, а не прохідний двір. Оголоси її спочатку і не грай на нервах");
     }
     
     public void AssignVariable(string name, object value)
@@ -33,7 +36,8 @@ public class Environment(Environment? parent = null)
         {
             if (variable.IsConstant)
             {
-                throw new Exception($"RuntimeError: Ти сам оголосив константу '{name}' а тепер намагаєшся змінити їй значення. Браво, тормоз");
+                throw new Exception($"RuntimeError: Ти намагаєшся змінити КОНСТАНТУ '{name}'. " +
+                                    $"Куди ти взагалі лізеш?. Не смій мутувати те, що обіцяв не чіпати!");
             }
             _variables[name] = variable with { Value = value };
             return;
@@ -45,6 +49,6 @@ public class Environment(Environment? parent = null)
             return;
         }
 
-        throw new Exception($"RuntimeError: Ти намагаєшся присвоїти значення не існуючій змінній '{name}'!");
+        throw new Exception($"RuntimeError: Присвоєння в нікуди! Змінної '{name}' не існує. Це прекраний BychkovScript, а не смітник (джаваскріпт)");
     }
 }

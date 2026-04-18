@@ -26,8 +26,8 @@ public class Parser
         }
         
         throw new Exception(
-            $"SyntaxError: Expected token {expectedType}, but got {_current.Type} '{_current.Value}' " +
-            $"{_current.Line}::{_current.Column}");
+            $"SyntaxError: Я чекав {expectedType}, а ти підсунув мені свій дурний {_current.Type} '{_current.Value}'. " +
+            $"ТИ З ЗАКРИТИМИ ОЧИМА КОД ПИШЕШ? В Расті наприклад, за таке компілятор б'є по руках стальною трубою. Шукай свій сором тут: {_current.Line}::{_current.Column}");
     }
 
     public ProgramNode ParseProgram()
@@ -96,7 +96,8 @@ public class Parser
                         return new IndexAssignmentNode(indexAccess, value);
                     }
 
-                    throw new Exception($"SyntaxError: Недопустима ціль для присвоєння у {_current.Line}");
+                    throw new Exception($"SyntaxError: Ти серйозно намагаєшся присвоїти значення туди?" +
+                                        $" Це не змінна і не індекс! Навіть макаки на джаваскріпті до такого не додумались би. Рядок {_current.Line}");
                 }
 
                 //Eat(TokenType.SemiColon);
@@ -208,7 +209,9 @@ public class Parser
         
         if (modifier.Type == TokenType.Const)
         {
-            throw new Exception($"SyntaxError: Константа '{name.Value}' так то має бути ініціалізована одразу.");
+            throw new Exception($"SyntaxError: Ти оголосив константу '{name.Value}' і тепер не даєщ їй значення?" +
+                                $" Навіщо вона тоді існує? Заради галочки? Якщо ти хочеш заробляти 5000 баксів у конверті," +
+                                $" то не допускай таку неповагу до імутабельності тебе б звільнили. Ініціалізуй одразу і не тупи");
         }
         
         //Eat(TokenType.SemiColon);
@@ -378,7 +381,9 @@ public class Parser
                 return new ListLiteralNode(bracketToken, elements);
 
             default:
-                throw new Exception($"SyntaxError: Unexpected token {_current.Type} at line {_current.Line}. Awaited expression.");
+                throw new Exception($"SyntaxError: Я очікував нормальний вираз ніби то число, рядок, змінну," +
+                                    $" а натрапив на {_current.Type}. Цей синтаксис такий кривий, що навіть сраний Пітон" +
+                                    $" відмовився б це парсити з його відступами. Рядок {_current.Line}");
         }
     }
     

@@ -49,7 +49,8 @@ public class Interpreter(Environment env)
             
             UnaryOperationNode unary => EvaluateUnaryOperation(unary),
             
-            _ => throw new Exception($"RuntimeError: Unknown Node type {node.GetType().Name}")
+            _ => throw new Exception($"RuntimeError: Я поняття не маю, що це за вузол {node.GetType().Name}. " +
+                                     $"Сходи подихай свіжим повітрям і перевір AST.")
         };
     }
     
@@ -95,7 +96,7 @@ public class Interpreter(Environment env)
             {
                 return node.Operator.Type == TokenType.And ? lBool && rBool : lBool || rBool;
             }
-            throw new Exception("TypeError: Логічні оператори потребують булевий тип");
+            throw new Exception($"TypeError: Логічний оператор '{node.Operator.Value}' хоче boolean. Ти намагаєшся порівняти непорівнюване, як у своєму джаваскріпті");
         }
         
         if (left is double l && right is double r)
@@ -112,7 +113,7 @@ public class Interpreter(Environment env)
                 TokenType.GreaterOrEquals => l >= r,
                 TokenType.Equals => Math.Abs(l - r) < 1e-9,
                 TokenType.NotEquals => Math.Abs(l - r) > 1e-9,
-                _ => throw new Exception($"RuntimeError: Оператор не підтримується для чисел: {node.Operator.Value}")
+                _ => throw new Exception($"RuntimeError: Навіщо ти пхаєш оператор '{node.Operator.Value}' до чисел?")
             };
         }
         
@@ -134,7 +135,7 @@ public class Interpreter(Environment env)
         string leftType = left?.GetType().Name ?? "null";
         string rightType = right?.GetType().Name ?? "null";
         
-        throw new Exception($"RuntimeError: Неможливо застосувати оператор '{node.Operator.Value}' до типів {leftType} і {rightType}");
+        throw new Exception($"JavaScriptFlashbackError: Спроба застосувати '{node.Operator.Value}' до {leftType} та {rightType}. Мені це нагадує псевдомову на букву J");
     }
     
     void ValidateType(TypeInfo typeInfo, object? value)
@@ -142,7 +143,7 @@ public class Interpreter(Environment env)
         if (typeInfo.BaseType.Type == TokenType.TypeList)
         {
             if (value is not List<object?> list)
-                throw new Exception($"TypeError: Очікується тип 'list', але розробник впихнув '{value}'");
+                throw new Exception($"TypeError: Очікувався list, а ти всунув '{value}'. В Rust за таку неповагу до контейнерів тебе б вигнали з IT.");
             
             if (typeInfo.ElementType is not null)
             {
@@ -158,37 +159,31 @@ public class Interpreter(Environment env)
         switch (typeInfo.BaseType.Type)
         {
             case TokenType.TypeString:
-                if (value is not string)
-                    throw new Exception($"TypeError: Змінна таки очікує тип 'str', але дурень-розробник умістив '{value}' у рядку {typeInfo.BaseType.Line}");
+                if (value is not string) throw new Exception($"TypeError: Змінна хоче 'str', а ти підсунув '{value}'. Рядок {typeInfo.BaseType.Line}. Ти що, пітоніст?");
                 break;
-
+            
             case TokenType.TypeInt32:
-                if (value is not double dInt || dInt % 1 != 0)
-                    throw new Exception($"TypeError: Змінна таки очікує тип 'int', але дурень-розробник умістив ({value}) у рядку {typeInfo.BaseType.Line}");
+                if (value is not double dInt || dInt % 1 != 0) throw new Exception($"TypeError: Очікувався 'int', а прийшло якесь неподобство ({value}). Рядок {typeInfo.BaseType.Line}");
                 break;
-
+            
             case TokenType.TypeFloat32:
-                if (value is not double)
-                    throw new Exception($"TypeError: Змінна таки очікує тип 'float', але дурень-розробник умістив '{value}' у рядку {typeInfo.BaseType.Line}");
+                if (value is not double) throw new Exception($"TypeError: Де ти тут бачиш 'float'? Те, що ти всунув ({value}), нікуди не лізе. Рядок {typeInfo.BaseType.Line}");
                 break;
             
             case TokenType.TypeBoolean:
-                if (value is not bool)
-                    throw new Exception($"TypeError: Змінна таки очікує тип 'boolean', але дурень-розробник умістив '{value}' у рядку {typeInfo.BaseType.Line}");
+                if (value is not bool) throw new Exception($"TypeError: Булеве значення - це TRUE або FALSE. '{value}' це твоя хвора фантазія. Рядок {typeInfo.BaseType.Line}");
                 break;
             
             case TokenType.TypeTrashcan:
-                if (value is not List<object?>)
-                    throw new Exception($"TypeError: Змінна таки очікує тип 'trashcan', але дурень-розробник умістив '{value}' у рядку {typeInfo.BaseType.Line}");
+                if (value is not List<object?>) throw new Exception($"TypeError: 'trashcan' - це список. Ти що, не знаєш як виглядає смітник? Рядок {typeInfo.BaseType.Line}");
                 break;
             
             case TokenType.TypeVoid:
-                if (value is not null)
-                    throw new Exception($"TypeError: Функція з типом 'void' уж ніяк не повинна повертати значення");
+                if (value is not null) throw new Exception($"TypeError: Ти повернув щось із 'void' функції. Бляха нема слів. Браво.");
                 break;
-
+            
             default:
-                throw new Exception($"RuntimeError: Де ти знайшов тип даних {typeInfo.BaseType.Value}?");
+                throw new Exception($"RuntimeError: Де ти знайшов тип '{typeInfo.BaseType.Value}'? Ти його сам вигадав?");
         }
     }
     
@@ -207,7 +202,7 @@ public class Interpreter(Environment env)
         
         if (condition is not bool b)
         {
-            throw new Exception($"TypeError: Очікується булеве значення а тут {condition?.GetType().Name}");
+            throw new Exception($"TypeError: Умова в 'if' має бути тільки boolean! Досить тягнути звички зі свого смердючого пітону, де все підряд то правда.");
         }
         
         if (b)
@@ -229,7 +224,7 @@ public class Interpreter(Environment env)
             object? condition = Evaluate(node.Condition);
             
             if (condition is not bool b)
-                throw new Exception($"TypeError: Умова циклу while повинна бути логічною, а не оця срань {condition?.GetType().Name}");
+                throw new Exception($"TypeError: Цикл 'while' хоче булеву умову, а не цей жах: {condition?.GetType().Name}");
                 
             if (!b) break;
             
@@ -244,7 +239,7 @@ public class Interpreter(Environment env)
         object? endObj = Evaluate(node.End);
 
         if (startObj is not double startVal || endObj is not double endVal)
-            throw new Exception("TypeError: Діапазон циклу for повинний бути цілочисельним (int).");
+            throw new Exception("TypeError: Діапазон циклу 'for' має бути тільки int. Ти ще спробуй по ітератору зі стрінгами пройтися.");
         
         int start = (int)startVal;
         int end = (int)endVal;
@@ -295,7 +290,7 @@ public class Interpreter(Environment env)
         if (funcObj is NativeFunction native)
         {
             if (native.Arity != -1 && node.Arguments.Count != native.Arity)
-                throw new Exception($"RuntimeError: Функція '{node.Identifier.Value}' взагалі то очікує від вас {native.Arity} аргументів.");
+                throw new Exception($"RuntimeError: Нативна функція '{node.Identifier.Value}' очікує {native.Arity} аргументів, а не твій хаос із {node.Arguments.Count} штук.");
 
             List<object?> nArgs = [];
             foreach (var arg in node.Arguments) nArgs.Add(Evaluate(arg));
@@ -304,10 +299,10 @@ public class Interpreter(Environment env)
         }
         
         if (funcObj is not BychkovFunction func)
-            throw new Exception($"TypeError: '{node.Identifier.Value}' не є функцією.");
+            throw new Exception($"TypeError: '{node.Identifier.Value}' - це, шановний, не функція. Не намагайся викликати те, що не викликається.");
         
         if (node.Arguments.Count != func.Declaration.Parameters.Count)
-            throw new Exception($"RuntimeError: Функція '{node.Identifier.Value}' взагалі то очікує від вас {func.Declaration.Parameters.Count} аргументів.");
+            throw new Exception($"RuntimeError: Функція '{node.Identifier.Value}' хоче {func.Declaration.Parameters.Count} аргументів. Іди помийся");
         
         List<object?> argValues = [];
         argValues.AddRange(node.Arguments.Select(Evaluate));
@@ -327,7 +322,7 @@ public class Interpreter(Environment env)
             
             if (func.Declaration.ReturnType is not null && func.Declaration.ReturnType.BaseType.Type is not TokenType.TypeVoid)
             {
-                throw new Exception($"RuntimeError: Функція '{node.Identifier.Value}' взагалі то повинна повертати '{func.Declaration.ReturnType.BaseType.Value}', але ти скоріше всього не вдуплив і забув return");
+                throw new Exception($"RuntimeError: Функція '{node.Identifier.Value}' обіцяла повернути '{func.Declaration.ReturnType.BaseType.Value}', але ти забив і нічого не повернув. В расті за таку брехню тебе б спалили заживо.");
             }
             
             return null;
@@ -470,7 +465,7 @@ public class Interpreter(Environment env)
 
         if (index < 0 || index >= list.Count)
         {
-            throw new Exception($"RuntimeError: Індекс {index} іс аут оф розмів масиву ({list.Count})");
+            throw new Exception($"RuntimeError: Індекс {index} іс аут оф розмір масиву ({list.Count})");
         }
         
         list[index] = newValue;

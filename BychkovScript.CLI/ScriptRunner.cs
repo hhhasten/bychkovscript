@@ -34,7 +34,7 @@ public class ScriptRunner
             
             else
             {
-                Console.WriteLine($"Error: Файл {mainScriptPath} не знайдено.");
+                Console.WriteLine($"Error: Файл {mainScriptPath} не знайдено, причому я не знаю де він взагалі може бути.");
             }
         }
         catch (Exception ex)
@@ -71,6 +71,6 @@ public class ScriptRunner
             return;
         }
 
-        throw new Exception($"ImportError: Не вдалося знайти ніякого '{moduleName}'.");
+        throw new Exception($"ImportError: Не вдалося знайти ніякого '{moduleName}'. Вот і все, НЕМА");
     }
 }
