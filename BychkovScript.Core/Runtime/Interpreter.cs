@@ -325,7 +325,7 @@ public class Interpreter(Environment env)
             Env = callEnv;
             Evaluate(func.Declaration.Body);
             
-            if (func.Declaration.ReturnType != null && func.Declaration.ReturnType.BaseType.Type != TokenType.TypeVoid)
+            if (func.Declaration.ReturnType is not null && func.Declaration.ReturnType.BaseType.Type is not TokenType.TypeVoid)
             {
                 throw new Exception($"RuntimeError: Функція '{node.Identifier.Value}' взагалі то повинна повертати '{func.Declaration.ReturnType.BaseType.Value}', але ти скоріше всього не вдуплив і забув return");
             }
@@ -335,8 +335,7 @@ public class Interpreter(Environment env)
         catch (ReturnException r)
         {
             ValidateType(func.Declaration.ReturnType, r.Value);
-
-            return r.Value; 
+            return r.Value;
         }
         finally
         {

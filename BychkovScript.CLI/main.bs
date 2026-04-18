@@ -1,19 +1,5 @@
+mtd sayHello(person: str) {
+    println!(person + ": HELLO!")
+} 
 
-let a := 5
-let b := "some words"
-
-let c: int
-
-c = 5
-
-let arr: trashcan
-
-arr = [a, b, c]
-
-let arr2: list|int = [5, 6, 7, 8]
-
-let arr3: list|int
-
-arr3 = [9, 10, 11, 12]
-
-let arr4 := [5, 6, 7, 5]
+"someguy".sayHello();

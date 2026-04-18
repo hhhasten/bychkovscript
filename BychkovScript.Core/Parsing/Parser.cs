@@ -408,15 +408,21 @@ public class Parser
         }
         Eat(TokenType.CloseParen);
         
-        TypeInfo? returnType = null;
+        TypeInfo returnType;
+        
         if (_current.Type == TokenType.Arrow) // ->
         {
             Eat(TokenType.Arrow);
             returnType = ParseType();
         }
+        else
+        {
+            Token voidToken = _current with { Type = TokenType.TypeVoid, Value = "void" };
+            returnType = new TypeInfo(voidToken); 
+        }
 
         BlockNode body = ParseBlock();
-        return new FunctionDeclarationNode(keywordToken, name, parameters, returnType!, body, isMethod);
+        return new FunctionDeclarationNode(keywordToken, name, parameters, returnType, body, isMethod);
     }
 
     Statement ParseReturnStatement()
@@ -424,7 +430,7 @@ public class Parser
         Token returnToken = Eat(TokenType.Return);
         Expression? value = null;
         
-        if (_current.Type != TokenType.SemiColon)
+        if (_current.Type is not TokenType.SemiColon && _current.Type is not TokenType.CloseBrace)
         {
             value = ParseExpression();
         }
