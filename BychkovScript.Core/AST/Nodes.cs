@@ -77,5 +77,6 @@ public record ListLiteralNode(Token Token, List<Expression> Elements) : Expressi
 
 public record IndexAccessNode(Expression Target, Expression Index) : Expression(Target.Token);
 
-public record IndexAssignmentNode(IndexAccessNode IndexAccess, Expression Value) 
-    : Statement(IndexAccess.Target.Token);
+public record IndexAssignmentNode(IndexAccessNode IndexAccess, Expression Value) : Statement(IndexAccess.Target.Token);
+
+public record UnaryOperationNode(Token Operator, Expression Right) : Expression(Operator);

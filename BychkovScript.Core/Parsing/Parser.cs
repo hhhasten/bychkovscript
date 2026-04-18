@@ -220,7 +220,7 @@ public class Parser
     Expression ParseEquality()
     {
         Expression left = ParseRelational();
-        while (_current.Type == TokenType.Equals) 
+        while (_current.Type is TokenType.Equals or TokenType.NotEquals) 
         {
             Token op = _current; Move();
             Expression right = ParseRelational();
@@ -261,14 +261,14 @@ public class Parser
 
     Expression ParseMultiplicative()
     {
-        Expression left = ParsePostfix();
+        Expression left = ParseUnary();
         
         while (_current.Type is TokenType.Multiply or TokenType.Divide)
         {
             Token operatorToken = _current;
             Move();
             
-            Expression right = ParsePostfix();
+            Expression right = ParseUnary();
             
             left = new BinaryNode(left, operatorToken, right);
         }
@@ -438,5 +438,19 @@ public class Parser
         }
 
         return expr;
+    }
+    
+    Expression ParseUnary()
+    {
+        if (_current.Type == TokenType.Tilde)
+        {
+            Token op = _current; 
+            Move();
+            
+            Expression right = ParseUnary(); 
+            return new UnaryOperationNode(op, right);
+        }
+        
+        return ParsePostfix(); 
     }
 }

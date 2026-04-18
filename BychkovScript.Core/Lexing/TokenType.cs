@@ -39,6 +39,8 @@ public enum TokenType
     GreaterThan,        // >
     LessOrEquals,       // <=
     GreaterOrEquals,    // >=
+    NotEquals, // '!=='
+    Tilde,     // ~
     
     // Syntax ----------------------------------------------------
     

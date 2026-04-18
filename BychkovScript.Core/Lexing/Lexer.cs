@@ -83,11 +83,11 @@ public class Lexer(string source)
             case ':': Move(); return new Token(TokenType.Colon, ":", startLine, startColumn);
             case ',': Move(); return new Token(TokenType.Comma, ",", startLine, startColumn);
             
-            case '!': Move(); return new Token(TokenType.Bang, "!", startLine, startColumn);
-            
             case '[': Move(); return new Token(TokenType.OpenBracket, "[", startLine, startColumn);
             case ']': Move(); return new Token(TokenType.CloseBracket, "]", startLine, startColumn);
             case '|': Move(); return new Token(TokenType.Pipe, "|", startLine, startColumn);
+            
+            case '~': Move(); return new Token(TokenType.Tilde, "~", startLine, startColumn);
             
             case '-':
                 if (Peek == '>')
@@ -138,6 +138,15 @@ public class Lexer(string source)
                 }
                 Move();
                 return new Token(TokenType.Dot, ".", startLine, startColumn);
+            
+            case '!':
+                if (Peek == '=' && PeekTwo == '=')
+                {
+                    Move(); Move(); Move();
+                    return new Token(TokenType.NotEquals, "!==", startLine, startColumn);
+                }
+                Move();
+                return new Token(TokenType.Bang, "!", startLine, startColumn);
         }
         
         Move();

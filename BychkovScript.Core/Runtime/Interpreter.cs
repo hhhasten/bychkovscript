@@ -46,6 +46,8 @@ public class Interpreter(Environment env)
             
             IndexAssignmentNode indexAssign => EvaluateIndexAssignment(indexAssign),
             
+            UnaryOperationNode unary => EvaluateUnaryOperation(unary),
+            
             _ => throw new Exception($"RuntimeError: Unknown Node type {node.GetType().Name}")
         };
     }
@@ -78,18 +80,13 @@ public class Interpreter(Environment env)
         object? left = Evaluate(node.Left);
         object? right = Evaluate(node.Right);
         
-        if (node.Operator.Type == TokenType.Equals)
-        {
-            return left!.Equals(right);
-        }
-        
         if (node.Operator.Type is TokenType.And or TokenType.Or)
         {
             if (left is bool lBool && right is bool rBool)
             {
                 return node.Operator.Type == TokenType.And ? lBool && rBool : lBool || rBool;
             }
-            throw new Exception($"TypeError: Логічні оператори потребують булевий тип");
+            throw new Exception("TypeError: Логічні оператори потребують булевий тип");
         }
         
         if (left is double l && right is double r)
@@ -104,19 +101,31 @@ public class Interpreter(Environment env)
                 TokenType.GreaterThan => l > r,
                 TokenType.LessOrEquals => l <= r,
                 TokenType.GreaterOrEquals => l >= r,
-                _ => throw new Exception($"RuntimeError: Оператор не підтримується: {node.Operator.Value}")
+                TokenType.Equals => Math.Abs(l - r) < 1e-9,
+                TokenType.NotEquals => Math.Abs(l - r) > 1e-9,
+                _ => throw new Exception($"RuntimeError: Оператор не підтримується для чисел: {node.Operator.Value}")
             };
         }
-
-        if (left is not string && right is not string)
-            throw new Exception($"RuntimeError: Оператор не підтримується: {node.Operator.Value}");
-
-        if (node.Operator.Type == TokenType.Plus)
+        
+        if (node.Operator.Type == TokenType.Plus && (left is string || right is string))
         {
-            return left!.ToString() + right!;
+            return left?.ToString() + right;
         }
-
-        throw new Exception($"RuntimeError: Оператор не підтримується: {node.Operator.Value}");
+        
+        if (node.Operator.Type == TokenType.Equals)
+        {
+            return Equals(left, right); 
+        }
+        
+        if (node.Operator.Type == TokenType.NotEquals)
+        {
+            return !Equals(left, right);
+        }
+        
+        string leftType = left?.GetType().Name ?? "null";
+        string rightType = right?.GetType().Name ?? "null";
+        
+        throw new Exception($"RuntimeError: Неможливо застосувати оператор '{node.Operator.Value}' до типів {leftType} і {rightType}");
     }
     
     void ValidateType(TypeInfo typeInfo, object? value)
@@ -399,6 +408,21 @@ public class Interpreter(Environment env)
         list[index] = newValue;
     
         return newValue;
+    }
+    
+    object? EvaluateUnaryOperation(UnaryOperationNode node)
+    {
+        object? right = Evaluate(node.Right);
+
+        if (node.Operator.Type == TokenType.Tilde)
+        {
+            if (right is not bool b)
+                throw new Exception($"TypeError: Оператор '~' можна використовувати тіки для boolean, а не для {right}");
+            
+            return !b;
+        }
+
+        throw new Exception($"RuntimeError: Невідомий унарный оператор {node.Operator.Value}");
     }
 
     record BychkovFunction(FunctionDeclarationNode Declaration, Environment Closure);

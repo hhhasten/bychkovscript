@@ -1,21 +1,6 @@
-let arr: list|boolean = [TRUE, FALSE, TRUE];
-let shitlist: trashcan = [5, TRUE, "hello", "lol", 125.24];
+let isCool: boolean = TRUE;
+let isBoring: boolean = ~isCool;
 
-for i in 0..3 {
-    print!(arr[i] + " ");
+if ((1 !== 2)) {
+    print!("Inversion works: " + isBoring);
 }
-println!("");
-
-for i in 0..5 {
-    print!(shitlist[i] + " ");
-}
-println!("");
-
-for i in 0..5 {
-    shitlist[i] = 6;
-}
-
-for i in 0..5 {
-    print!(shitlist[i] + " ");
-}
-println!("");
