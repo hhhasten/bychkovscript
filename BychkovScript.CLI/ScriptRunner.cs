@@ -8,16 +8,15 @@ namespace BychkovScript.CLI;
 public class ScriptRunner
 {
     readonly Interpreter _interpreter;
-    readonly Environment _globalEnv;
     readonly string _baseDirectory;
 
     public ScriptRunner()
     {
         _baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-        _globalEnv = new Environment();
-        NativeLibrary.Register(_globalEnv);
+        var globalEnv = new Environment();
+        NativeLibrary.Register(globalEnv);
         
-        _interpreter = new Interpreter(_globalEnv) 
+        _interpreter = new Interpreter(globalEnv) 
         {
             OnImport = ResolveAndExecuteImport
         };

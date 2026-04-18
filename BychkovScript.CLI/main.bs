@@ -1,18 +1,8 @@
-let myArr: trashcan = [10, 20];
-myArr.push!(30);
-myArr.push!("Random string here");
+let message := "Привіт, BychkovScript!";
+let target := 42;
+const pi := 3.14159;
+let items := [1, 2, 3];
 
-println!("Length: " + myArr.len!());
-
-for i in 0..myArr.len!() {
-    println!(myArr[i]);
-}
-
-myArr.pop!();
-println!("Length: " + myArr.len!());
-
-println!(randSingle!());
-
-let rand: int = randInt!(5, 1000);
-
-println!(rand);
+println!(message);
+println!(target);
+println!(items.len!());

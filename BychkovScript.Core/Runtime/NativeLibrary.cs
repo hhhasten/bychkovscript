@@ -16,12 +16,10 @@ public static class NativeLibrary
             return null;
         }), isConstant: true);
 
-        env.DeclareVariable("input!", new Interpreter.NativeFunction(0, args => 
-        {
-            return Console.ReadLine() ?? "";
-        }), isConstant: true);
+        env.DeclareVariable("input!", new Interpreter.NativeFunction(0, _ 
+            => Console.ReadLine() ?? ""), isConstant: true);
 
-        env.DeclareVariable("cls!", new Interpreter.NativeFunction(0, args => 
+        env.DeclareVariable("cls!", new Interpreter.NativeFunction(0, _ => 
         {
             Console.Clear();
             return null;
@@ -117,7 +115,7 @@ public static class NativeLibrary
             throw new Exception("RuntimeError: Аргументами цієї функції повинні бути значення типу int.");
         }), isConstant: true);
         
-        env.DeclareVariable("randSingle!", new Interpreter.NativeFunction(0, args 
+        env.DeclareVariable("randSingle!", new Interpreter.NativeFunction(0, _ 
             => Random.Shared.NextSingle()), isConstant: true);
         
         env.DeclareVariable("contains!", new Interpreter.NativeFunction(2, args => 

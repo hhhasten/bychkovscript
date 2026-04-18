@@ -54,6 +54,7 @@ public enum TokenType
     Colon,                      // :
     SemiColon,                  // ;
     Pipe,                       // |
+    ColonAssign,                // :=
     
     // Special ---------------------------------------------------
     

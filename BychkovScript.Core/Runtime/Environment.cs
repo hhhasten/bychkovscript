@@ -2,7 +2,7 @@ namespace BychkovScript.Core.Runtime;
 
 public class Environment(Environment? parent = null)
 {
-    record Variable(object Value, bool IsConstant);
+    record Variable(object? Value, bool IsConstant);
 
     readonly Dictionary<string, Variable> _variables = new();
 
@@ -16,7 +16,7 @@ public class Environment(Environment? parent = null)
         _variables[name] = new Variable(value, isConstant);
     }
     
-    public object GetVariable(string name)
+    public object? GetVariable(string name)
     {
         if (_variables.TryGetValue(name, out var variable))
             return variable.Value;

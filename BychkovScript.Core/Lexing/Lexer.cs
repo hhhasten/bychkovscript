@@ -2,7 +2,7 @@ namespace BychkovScript.Core.Lexing;
 
 public class Lexer(string source)
 {
-    int _idx = 0;
+    int _idx;
     int _line = 1;
     int _column = 1;
     
@@ -56,17 +56,17 @@ public class Lexer(string source)
         
         if (char.IsLetter(c) || c == '_')
         {
-            return ReadIdentifier(c, startLine, startColumn);
+            return ReadIdentifier(startLine, startColumn);
         }
         
         if (char.IsDigit(c))
         {
-            return ReadNumber(c, startLine, startColumn);
+            return ReadNumber(startLine, startColumn);
         }
         
         if (c == '"')
         {
-            return ReadString(c, startLine, startColumn);
+            return ReadString(startLine, startColumn);
         }
 
         switch (c)
@@ -81,7 +81,6 @@ public class Lexer(string source)
             case '}': Move(); return new Token(TokenType.CloseBrace, "}", startLine, startColumn);
             
             case ';': Move(); return new Token(TokenType.SemiColon, ";", startLine, startColumn);
-            case ':': Move(); return new Token(TokenType.Colon, ":", startLine, startColumn);
             case ',': Move(); return new Token(TokenType.Comma, ",", startLine, startColumn);
             
             case '[': Move(); return new Token(TokenType.OpenBracket, "[", startLine, startColumn);
@@ -89,6 +88,15 @@ public class Lexer(string source)
             case '|': Move(); return new Token(TokenType.Pipe, "|", startLine, startColumn);
             
             case '~': Move(); return new Token(TokenType.Tilde, "~", startLine, startColumn);
+            
+            case ':':
+                if (Peek == '=')
+                {
+                    Move(); Move();
+                    return new Token(TokenType.ColonAssign, ":=", startLine, startColumn);
+                }
+                Move();
+                return new Token(TokenType.Colon, ":", startLine, startColumn);
             
             case '-':
                 if (Peek == '>')
@@ -203,7 +211,7 @@ public class Lexer(string source)
     /// <summary>
     /// Reading variable names and keywords
     /// </summary>
-    Token ReadIdentifier(char c, int startLine, int startColumn)
+    Token ReadIdentifier(int startLine, int startColumn)
     {
         string text = "";
         while (char.IsLetterOrDigit(Current) || Current == '_')
@@ -224,7 +232,7 @@ public class Lexer(string source)
     /// <summary>
     /// // Reading numbers
     /// </summary>
-    Token ReadNumber(char c, int startLine, int startColumn)
+    Token ReadNumber(int startLine, int startColumn)
     {
         string numStr = "";
         bool isFloat = false;
@@ -257,7 +265,7 @@ public class Lexer(string source)
     /// <summary>
     /// Reading strings
     /// </summary>
-    Token ReadString(char c, int startLine, int startColumn)
+    Token ReadString(int startLine, int startColumn)
     {
         Move();
         

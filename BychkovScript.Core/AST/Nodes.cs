@@ -20,7 +20,7 @@ public record BinaryNode(Expression Left, Token Operator, Expression Right) : Ex
 public record VariableDeclarationNode(
     Token Modifier,     // let / const
     Token Identifier,   // var name (x)
-    TypeInfo DataType,     // type (int, float, string)
+    TypeInfo? DataType,     // type (int, float, string)
     Expression Value    // value
 ) : Statement(Modifier);
 

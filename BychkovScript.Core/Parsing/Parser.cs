@@ -6,7 +6,7 @@ namespace BychkovScript.Core.Parsing;
 public class Parser
 {
     readonly Lexer _lexer;
-    Token _current;
+    Token _current = null!;
 
     public Parser(Lexer lexer)
     {
@@ -178,11 +178,19 @@ public class Parser
     {
         Token modifier = _current; Move();
         Token name = Eat(TokenType.Identifier);
-        Eat(TokenType.Colon);
+        TypeInfo? typeInfo = null; 
         
-        TypeInfo typeInfo = ParseType(); 
-
-        Eat(TokenType.Assign);
+        if (_current.Type == TokenType.ColonAssign)
+        {
+            Move();
+        }
+        else
+        {
+            Eat(TokenType.Colon);
+            typeInfo = ParseType(); 
+            Eat(TokenType.Assign); 
+        }
+        
         Expression value = ParseExpression();
         Eat(TokenType.SemiColon);
         

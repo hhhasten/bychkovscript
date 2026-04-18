@@ -67,11 +67,14 @@ public class Interpreter(Environment env)
     {
         object? value = Evaluate(node.Value);
         
-        ValidateType(node.DataType, value);
+        if (node.DataType != null) 
+        {
+            ValidateType(node.DataType, value);
+        }
         
         bool isConst = node.Modifier.Type == TokenType.Const;
         
-        Env.DeclareVariable(node.Identifier.Value, value!, isConst);
+        Env.DeclareVariable(node.Identifier.Value, value, isConst);
         
         return value;
     }
@@ -282,7 +285,7 @@ public class Interpreter(Environment env)
 
     object? EvaluateFunctionCall(FunctionCallNode node)
     {
-        object funcObj = Env.GetVariable(node.Identifier.Value);
+        object? funcObj = Env.GetVariable(node.Identifier.Value);
         
         if (funcObj is NativeFunction native)
         {
@@ -307,6 +310,7 @@ public class Interpreter(Environment env)
         Environment callEnv = new Environment(func.Closure);
         for (int i = 0; i < argValues.Count; i++)
         {
+            ValidateType(func.Declaration.Parameters[i].Type, argValues[i]);
             callEnv.DeclareVariable(func.Declaration.Parameters[i].Name.Value, argValues[i]!, false);
         }
         
@@ -339,7 +343,7 @@ public class Interpreter(Environment env)
     {
         object? target = Evaluate(node.Target);
         
-        object funcObj = Env.GetVariable(node.Identifier.Value);
+        object? funcObj = Env.GetVariable(node.Identifier.Value);
         
         List<object?> argValues = [target];
         argValues.AddRange(node.Arguments.Select(Evaluate));
