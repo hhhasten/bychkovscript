@@ -1,8 +1,0 @@
-fn foo(n: int) -> void {
-    for i in 0..n {
-        println!(i + ". Cлава Бичкову!");
-        # return;
-    }
-}
-
-foo(3);
