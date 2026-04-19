@@ -1,5 +1,14 @@
-mtd sayHello(person: str) {
-    println!(person + ": HELLO!")
-} 
+fn foo(n: int) -> void {
+    for i in 0..n {
+        println!(i + ". Cлава Бичкову!");
+        # return;
+    }
+}
 
-"someguy".sayHello();
+foo(3);
+
+let matrix: list|trashcan = [[1, 41],[1, 8]]
+
+println!(matrix[1][1])
+
+### output: 8

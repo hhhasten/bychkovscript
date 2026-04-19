@@ -20,6 +20,8 @@ public class ScriptRunner
             var globalEnv = new Environment();
             var interpreter = new Interpreter(globalEnv);
             
+            NativeLibrary.Register(globalEnv);
+            
             interpreter.OnImport = (moduleName) => 
             {
                 string dir = Path.GetDirectoryName(filePath) ?? "";
