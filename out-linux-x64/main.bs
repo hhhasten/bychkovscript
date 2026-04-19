@@ -1,0 +1,5 @@
+mtd sayHello(person: str) {
+    println!(person + ": HELLO!")
+} 
+
+"someguy".sayHello();

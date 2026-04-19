@@ -7,7 +7,7 @@ public class Interpreter(Environment env)
 {
     Environment Env { get; set; } = env;
     
-    public Action<string>? OnImport { get; init; }
+    public Action<string>? OnImport { get; set; }
     
     public object? Evaluate(Node node)
     {

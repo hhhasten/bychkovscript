@@ -7,35 +7,33 @@ namespace BychkovScript.CLI;
 
 public class ScriptRunner
 {
-    readonly Interpreter _interpreter;
-    readonly string _baseDirectory;
-
-    public ScriptRunner()
-    {
-        _baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-        var globalEnv = new Environment();
-        NativeLibrary.Register(globalEnv);
-        
-        _interpreter = new Interpreter(globalEnv) 
-        {
-            OnImport = ResolveAndExecuteImport
-        };
-
-    }
-
-    public void RunMain(string mainScriptPath)
+    public static void ExecuteFile(string filePath)
     {
         try
         {
-            if (File.Exists(mainScriptPath))
-            {
-                ExecuteFile(mainScriptPath);
-            }
+            string sourceCode = File.ReadAllText(filePath);
             
-            else
+            var lexer = new Lexer(sourceCode);
+            var parser = new Parser(lexer);
+            var ast = parser.ParseProgram();
+            
+            var globalEnv = new Environment();
+            var interpreter = new Interpreter(globalEnv);
+            
+            interpreter.OnImport = (moduleName) => 
             {
-                Console.WriteLine($"Error: Файл {mainScriptPath} не знайдено, причому я не знаю де він взагалі може бути.");
-            }
+                string dir = Path.GetDirectoryName(filePath) ?? "";
+                string importPath = Path.Combine(dir, moduleName + ".bs");
+                if (!File.Exists(importPath))
+                    throw new Exception($"ImportError: Модуль '{moduleName}' не знайдено!");
+                
+                string importSource = File.ReadAllText(importPath);
+                var importLexer = new Lexer(importSource);
+                var importParser = new Parser(importLexer);
+                interpreter.Evaluate(importParser.ParseProgram());
+            };
+            
+            interpreter.Evaluate(ast);
         }
         catch (Exception ex)
         {
@@ -43,34 +41,5 @@ public class ScriptRunner
             Console.WriteLine(ex.Message);
             Console.ResetColor();
         }
-    }
-
-    void ExecuteFile(string path)
-    {
-        string code = File.ReadAllText(path);
-        var lexer = new Lexer(code);
-        var parser = new Parser(lexer);
-        var program = parser.ParseProgram();
-        
-        _interpreter.Evaluate(program);
-    }
-    
-    void ResolveAndExecuteImport(string moduleName)
-    {
-        string localPath = Path.Combine(_baseDirectory, moduleName);
-        if (File.Exists(localPath))
-        {
-            ExecuteFile(localPath);
-            return;
-        }
-        
-        string stdLibPath = Path.Combine(_baseDirectory, "stdlib", moduleName + ".bs");
-        if (File.Exists(stdLibPath))
-        {
-            ExecuteFile(stdLibPath);
-            return;
-        }
-
-        throw new Exception($"ImportError: Не вдалося знайти ніякого '{moduleName}'. Вот і все, НЕМА");
     }
 }

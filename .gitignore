@@ -14,3 +14,5 @@ obj/
 TestResults/
 [Bb]uild[Ll]og.*
 *.binlog
+out/
+out-win/

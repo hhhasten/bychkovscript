@@ -1,10 +1,44 @@
 ﻿using BychkovScript.CLI;
 
-string baseDirectory = AppDomain.CurrentDomain.BaseDirectory;
-string mainScriptPath = Path.Combine(baseDirectory, "main.bs");
+if (args.Length == 0)
+{
+    Console.WriteLine("BychkovScript CLI");
+    Console.WriteLine("Використання:");
+    Console.WriteLine("  bs run <file.bs>   - Запустити скрипт");
+    Console.WriteLine("  bs --version       - Показати версію");
+    return;
+}
 
-var runner = new ScriptRunner();
+string command = args[0];
 
-Console.WriteLine("--- BychkovScript ---");
+switch (command)
+{
+    case "run":
+        if (args.Length < 2)
+        {
+            Console.WriteLine("Помилка: Вкажіть файл для запуску. Наприклад: bs run main.bs");
+            return;
+        }
+        
+        string filePath = args[1];
+        
+        string fullPath = Path.GetFullPath(filePath);
+        
+        if (!File.Exists(fullPath))
+        {
+            Console.WriteLine($"RuntimeError: Файл '{filePath}' не знайдено. Ти точно там його зберіг?");
+            return;
+        }
 
-runner.RunMain(mainScriptPath);
+        var runner = new ScriptRunner();
+        ScriptRunner.ExecuteFile(fullPath);
+        break;
+        
+    case "--version":
+        Console.WriteLine("BychkovScript v1.0.0");
+        break;
+        
+    default:
+        Console.WriteLine($"Помилка: Невідома команда '{command}'.");
+        break;
+}
