@@ -12,4 +12,8 @@ impl LexerError {
     pub fn double_not_eq(line: usize, col: usize) -> String {
         format!("[BychkovScript] use '!==' instead of '!=' ({}:{})", line, col)
     }
+
+    pub fn unterminated_string(line: usize, col: usize) -> String {
+        format!("[BychkovScript] Unclosed bracket ({}:{})", line, col)
+    }
 }

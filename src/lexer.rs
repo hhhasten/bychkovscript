@@ -36,6 +36,7 @@ pub enum TokenKind {
     Star,       // *
     Slash,      // /
     Eq,         // =
+    ColonEq,    // :=
     EqEqEq,     // ===
     Bang,       // !
     NotEqEq,    // !==
@@ -96,7 +97,6 @@ impl Lexer {
             Some('*') => { self.advance(); self.make_token(TokenKind::Star) }
             Some('(') => { self.advance(); self.make_token(TokenKind::LParen) }
             Some(')') => { self.advance(); self.make_token(TokenKind::RParen) }
-            Some(':') => { self.advance(); self.make_token(TokenKind::Colon) }
             Some(',') => { self.advance(); self.make_token(TokenKind::Comma) }
 
             // double char tokens
@@ -116,6 +116,15 @@ impl Lexer {
                     self.make_token(TokenKind::DotDot) // ..
                 } else {
                     self.make_token(TokenKind::Dot) // .
+                }
+            }
+            Some(':') => {
+                self.advance();
+                if self.peek() == Some('=') {
+                    self.advance();
+                    self.make_token(TokenKind::ColonEq) // :=
+                } else {
+                    self.make_token(TokenKind::Colon) // :
                 }
             }
 
@@ -161,6 +170,8 @@ impl Lexer {
 
             // identifiers/kwords
             Some(c) if c.is_alphabetic() || c == '_' => self.read_ident(),
+
+            Some('"') => self.read_string(),
 
             // eof
             None => self.make_token(TokenKind::Eof),
@@ -262,5 +273,22 @@ impl Lexer {
         };
 
         self.make_token(kind)
+    }
+
+    fn read_string(&mut self) -> Token {
+        self.advance();
+        let mut s = String::new();
+
+        loop {
+            match self.peek() {
+                Some('"') => { self.advance(); break; } // close "
+                Some('\n') | None => {
+                    panic!("{}", LexerError::unterminated_string(self.line, self.col))
+                }
+                Some(c) => { s.push(c); self.advance(); }
+            }
+        }
+
+        self.make_token(TokenKind::Str(s))
     }
 }
