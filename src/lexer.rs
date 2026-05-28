@@ -38,7 +38,7 @@ pub enum TokenKind {
     Eq,         // =
     EqEqEq,     // ===
     Bang,       // !
-    NotEqEq,   // !==
+    NotEqEq,    // !==
     Lt,         // <
     Gt,         // >
 
@@ -48,7 +48,7 @@ pub enum TokenKind {
     Colon,  // :
     Comma,  // ,
     Dot,    // .
-    DotDot,  // ..
+    DotDot, // ..
     Arrow,  // ->
     Newline,
     Indent,
@@ -156,6 +156,12 @@ impl Lexer {
                 tok
             }
 
+            // numbers
+            Some(c) if c.is_ascii_digit() => self.read_number(),
+
+            // identifiers/kwords
+            Some(c) if c.is_alphabetic() || c == '_' => self.read_ident(),
+
             // eof
             None => self.make_token(TokenKind::Eof),
 
@@ -201,5 +207,60 @@ impl Lexer {
             }
         }
         ch
+    }
+
+    fn read_number(&mut self) -> Token {
+        let mut num = String::new();
+        let mut is_float = false;
+
+        while let Some(c) = self.peek() {
+            if c.is_ascii_digit() {
+                num.push(c);
+                self.advance();
+            } else if c == '.' && self.peek_next() != Some('.') {
+                is_float = true;
+                num.push(c);
+                self.advance();
+            } else {
+                break;
+            }
+        }
+
+        if is_float {
+            let f: f64 = num.parse().unwrap();
+            self.make_token(TokenKind::Float(f))
+        } else {
+            let i: i64 = num.parse().unwrap();
+            self.make_token(TokenKind::Int(i))
+        }
+    }
+
+    fn read_ident(&mut self) -> Token {
+        let mut ident = String::new();
+
+        while let Some(c) = self.peek() {
+            if c.is_alphanumeric() || c == '_' {
+                ident.push(c);
+                self.advance();
+            } else {
+                break;
+            }
+        }
+
+        // kword or identifier
+        let kind = match ident.as_str() {
+            "let"   => TokenKind::Let,
+            "const" => TokenKind::Const,
+            "fn"    => TokenKind::Fn,
+            "ret"   => TokenKind::Ret,
+            "if"    => TokenKind::If,
+            "else"  => TokenKind::Else,
+            "while" => TokenKind::While,
+            "TRUE"  => TokenKind::Bool(true),
+            "FALSE"  => TokenKind::Bool(false),
+            _       => TokenKind::Ident(ident),
+        };
+
+        self.make_token(kind)
     }
 }
