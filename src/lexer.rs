@@ -42,6 +42,8 @@ pub enum TokenKind {
     NotEqEq,    // !==
     Lt,         // <
     Gt,         // >
+    LtEq,       // <
+    GtEq,       // >
 
     // Dividers
     LParen, // (
@@ -65,6 +67,7 @@ pub struct Lexer {
     line: usize,
     col: usize,
     indent_stack: Vec<usize>,
+    pending: Vec<Token>,
 }
 impl Lexer {
     pub fn new(source: &str) -> Self {
@@ -74,6 +77,7 @@ impl Lexer {
             line: 1,
             col: 1,
             indent_stack: vec![0],
+            pending: Vec::new(),
         }
     }
 
@@ -82,6 +86,10 @@ impl Lexer {
     }
 
     fn next_token(&mut self) -> Token {
+        if !self.pending.is_empty() {
+            return self.pending.remove(0);
+        }
+        
         while let Some(c) = self.peek() {
             if c == ' ' || c == '\t' {
                 self.advance();
@@ -127,6 +135,24 @@ impl Lexer {
                     self.make_token(TokenKind::Colon) // :
                 }
             }
+            Some('<') => {
+                self.advance();
+                if self.peek() == Some('=') {
+                    self.advance();
+                    self.make_token(TokenKind::LtEq) // <=
+                } else {
+                    self.make_token(TokenKind::Lt)
+                }
+            }
+            Some('>') => {
+                self.advance();
+                if self.peek() == Some('=') {
+                    self.advance();
+                    self.make_token(TokenKind::GtEq) // >=
+                } else {
+                    self.make_token(TokenKind::Gt)
+                }
+            }
 
             // triple char tokens
             Some('=') => {
@@ -161,8 +187,33 @@ impl Lexer {
             // indent
             Some('\n') => {
                 self.advance();
-                let tok = self.make_token(TokenKind::Newline);
-                tok
+                let newline_tok = self.make_token(TokenKind::Newline);
+                
+                let mut indent = 0;
+                while self.peek() == Some(' ') {
+                    indent += 1;
+                    self.advance();
+                }
+                
+                if self.peek() == Some('\n') || self.peek() == None {
+                    return newline_tok;
+                }
+                
+                let current = *self.indent_stack.last().unwrap();
+                
+                if indent > current {
+                    self.indent_stack.push(indent);
+                    self.pending.push(self.make_token(TokenKind::Indent));
+                } else if indent < current {
+                    while let Some(&top) = self.indent_stack.last() {
+                        if top <= indent { break; }
+                        self.indent_stack.pop();
+                        self.pending.push(self.make_token(TokenKind::Dedent));
+                    }
+                }
+                
+                self.pending.insert(0, newline_tok);
+                self.pending.remove(0)
             }
 
             // numbers
@@ -174,7 +225,15 @@ impl Lexer {
             Some('"') => self.read_string(),
 
             // eof
-            None => self.make_token(TokenKind::Eof),
+            None => {
+                // close all open blocks before file ends
+                if self.indent_stack.len() > 1 {
+                    self.indent_stack.pop();
+                    self.pending.push(self.make_token(TokenKind::Eof));
+                    return self.make_token(TokenKind::Dedent);
+                }
+                self.make_token(TokenKind::Eof)
+            }
 
             // unknown
             Some(c) => {
