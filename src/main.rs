@@ -1,5 +1,7 @@
 mod errors;
 mod lexer;
+mod ast;
+//mod parser;
 use lexer::Lexer;
 
 fn main() {
@@ -14,4 +16,5 @@ fn main() {
     for tok in &tokens {
         println!("{:?}", tok);
     }
+
 }

@@ -164,17 +164,6 @@ impl Lexer {
 
             Some('"') => self.read_string(),
 
-            // eof
-            None => {
-                // close all open blocks before file ends
-                if self.indent_stack.len() > 1 {
-                    self.indent_stack.pop();
-                    self.pending.push(self.make_token(TokenKind::Eof));
-                    return self.make_token(TokenKind::Dedent);
-                }
-                self.make_token(TokenKind::Eof)
-            }
-
             // comments
 
             Some('/') => {
@@ -203,6 +192,17 @@ impl Lexer {
                 let c = c;
                 self.advance();
                 panic!("{}", LexerError::unknown_char(c, self.line, self.col))
+            }
+
+            // eof
+            None => {
+                // close all open blocks before file ends
+                if self.indent_stack.len() > 1 {
+                    self.indent_stack.pop();
+                    self.pending.push(self.make_token(TokenKind::Eof));
+                    return self.make_token(TokenKind::Dedent);
+                }
+                self.make_token(TokenKind::Eof)
             }
         }
     }
