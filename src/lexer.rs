@@ -27,8 +27,6 @@ pub enum TokenKind {
     Else,
     While,
     For,
-    True,
-    False,
 
     // Operators
     Plus,       // +
@@ -42,8 +40,8 @@ pub enum TokenKind {
     NotEqEq,    // !==
     Lt,         // <
     Gt,         // >
-    LtEq,       // <
-    GtEq,       // >
+    LtEq,       // <=
+    GtEq,       // >=
 
     // Dividers
     LParen, // (
@@ -56,6 +54,10 @@ pub enum TokenKind {
     Newline,
     Indent,
     Dedent,
+
+    // Comments
+    Comment(String),        // //
+    DocComment(String),     // /// doc comment
 
     // Eof
     Eof,
@@ -121,9 +123,9 @@ impl Lexer {
                 self.advance();
                 if self.peek() == Some('.') {
                     self.advance();
-                    self.make_token(TokenKind::DotDot) // ..
+                    self.make_token(TokenKind::DotDot)  // ..
                 } else {
-                    self.make_token(TokenKind::Dot) // .
+                    self.make_token(TokenKind::Dot)     // .
                 }
             }
             Some(':') => {
@@ -132,7 +134,7 @@ impl Lexer {
                     self.advance();
                     self.make_token(TokenKind::ColonEq) // :=
                 } else {
-                    self.make_token(TokenKind::Colon) // :
+                    self.make_token(TokenKind::Colon)   // :
                 }
             }
             Some('<') => {
@@ -141,7 +143,7 @@ impl Lexer {
                     self.advance();
                     self.make_token(TokenKind::LtEq) // <=
                 } else {
-                    self.make_token(TokenKind::Lt)
+                    self.make_token(TokenKind::Lt)   // <
                 }
             }
             Some('>') => {
@@ -150,7 +152,7 @@ impl Lexer {
                     self.advance();
                     self.make_token(TokenKind::GtEq) // >=
                 } else {
-                    self.make_token(TokenKind::Gt)
+                    self.make_token(TokenKind::Gt)   // >
                 }
             }
 
@@ -233,6 +235,29 @@ impl Lexer {
                     return self.make_token(TokenKind::Dedent);
                 }
                 self.make_token(TokenKind::Eof)
+            }
+
+            // comments
+
+            Some('/') => {
+                self.advance();
+                match self.peek() {
+                    Some('/') => {
+                        self.advance();
+                        // check /// for docs
+                        if self.peek() == Some('/') {
+                            self.advance();
+                            self.read_comment(true)
+                        } else {
+                            self.read_comment(false)
+                        }
+                    }
+                    Some('*') => {
+                        self.advance();
+                        self.read_block_comment()
+                    }
+                    _ => self.make_token(TokenKind::Slash)  // division /
+                }
             }
 
             // unknown
@@ -326,8 +351,9 @@ impl Lexer {
             "if"    => TokenKind::If,
             "else"  => TokenKind::Else,
             "while" => TokenKind::While,
+            "for"   => TokenKind::For,
             "TRUE"  => TokenKind::Bool(true),
-            "FALSE"  => TokenKind::Bool(false),
+            "FALSE" => TokenKind::Bool(false),
             _       => TokenKind::Ident(ident),
         };
 
@@ -349,5 +375,49 @@ impl Lexer {
         }
 
         self.make_token(TokenKind::Str(s))
+    }
+
+    fn read_comment(&mut self, is_doc: bool) -> Token {
+        let mut text = String::new();
+
+        // read until string end
+        while let Some(c) = self.peek() {
+            if c == '\n' { break; }
+            text.push(c);
+            self.advance();
+        }
+
+        let kind = if is_doc {
+            TokenKind::DocComment(text.trim().to_string())
+        } else {
+            TokenKind::Comment(text.trim().to_string())
+        };
+
+        self.make_token(kind)
+    }
+
+    fn read_block_comment(&mut self) -> Token {
+        let mut text = String::new();
+
+        loop {
+            match self.peek() {
+                Some('*') => {
+                    self.advance();
+                    if self.peek() == Some('/') {
+                        self.advance();
+                        break;
+                    } else {
+                        text.push('*');
+                    }
+                }
+                None => panic!("{}", LexerError::unterminated_block_comment(self.line, self.col)),
+                Some(c) => {
+                    text.push(c);
+                    self.advance();
+                }
+            }
+        }
+
+        self.make_token(TokenKind::Comment(text.trim().to_string()))
     }
 }

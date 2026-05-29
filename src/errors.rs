@@ -20,6 +20,10 @@ impl LexerError {
     }
 
     pub fn unterminated_string(line: usize, col: usize) -> String {
-        format!("[BychkovScript] Unclosed bracket ({}:{})", line, col)
+        format!("[BychkovScript] Unterminated bracket ({}:{})", line, col)
+    }
+
+    pub fn unterminated_block_comment(line: usize, col: usize) -> String {
+        format!("[BychkovScript] Unterminated block comment ({}:{})", line, col)
     }
 }
